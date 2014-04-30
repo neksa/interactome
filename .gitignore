@@ -1,0 +1,11 @@
+backup
+pdbtools
+scoring/PDB
+scoring/plots
+*.png
+scoring/results
+Workflow.bak
+*.xml
+*.fasta
+SKEMPI
+scoring/data
