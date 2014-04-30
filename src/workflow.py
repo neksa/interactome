@@ -17,19 +17,71 @@ Alignments:
 """
 
 import xml.etree.ElementTree as ET
-from collections import defaultdict
-from textwrap import fill
+from collections import defaultdict, namedtuple
+from textwrap import TextWrapper
 
 import httplib
 import xml.etree.ElementTree as ET
 import pickle
 import zlib
+import csv
+from itertools import islice
 
 from modeller import * #model, environ, alignment
 from modeller.automodel import automodel    # Load the automodel class
 
+from cStringIO import StringIO
+
 import glob
 import subprocess
+
+class SearchResults:
+    def getTabularResults(self):
+        records = []
+        PDBSearchRecord = namedtuple('PDBSearchRecord', 'pdb, chain, resolution, source, tax, entity, sequence, chain_len, db_id')
+        with open("../Workflow/Searches/tabularResults.csv") as f:
+            reader = csv.reader(islice(f, 1, None), delimiter=',', quotechar='"')
+            for r in reader:
+                if len(r) > 0:
+                    rec = PDBSearchRecord._make(r)
+                    # yield rec
+                    records.append(rec)
+            return records    
+            # for rec in map(PDBSearchRecord._make, reader):
+            #     print rec.pdb, rec.chain, rec.resolution
+            #     print rec.sequence
+            #     print
+            #     records.append(rec)
+
+    def filterPDB(self, records):
+        excluded_pdb = []
+        min_chain_len = 50
+        tax_id = 9606
+        for rec in records:
+            try:
+                if int(rec.tax) != tax_id:
+                    excluded_pdb.append(rec.pdb)
+                    continue
+
+                if int(rec.chain_len) < min_chain_len:
+                    excluded_pdb.append(rec.pdb)
+                    continue
+            except:
+                excluded_pdb.append(rec.pdb)
+                continue                
+
+        excluded_pdb = set(excluded_pdb)
+        new_records = [rec for rec in records if rec.pdb not in excluded_pdb]
+        return new_records
+
+
+    def searchToFasta(self, records, fasta_file):
+        wrapper = TextWrapper(break_on_hyphens = False, width = 60)
+        with open(fasta_file, 'w') as o:
+            for r in records:
+                o.write(">{}{}\n".format(r.pdb.upper(), r.chain.upper()))
+                o.write("{}\n".format(wrapper.fill(r.sequence)))
+
 
 class SKEMPI:
     def getDimers(self):
@@ -95,13 +147,42 @@ class BLAST:
             "-db", "pdb",
             "-query", sequence_file, 
             "-outfmt", str(format),
+            "-evalue", "1",
             "-remote"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
 
         output, err = proc.communicate()[0]
         print err
-        with open(results_file, 'w') as o:
-            o.write(output)
-        return output
+        # with open(results_file, 'w') as o:
+        #     o.write(output)
+        # return output
+
+    """
+    Returns XML
+    """
+    def runDeltaBLAST(self, sequence_file, results_file, format=5):
+
+        try:
+            with open(results_file, 'r') as f:
+                output = f.read()
+                return output
+        except IOError:
+            pass
+
+        proc = subprocess.Popen([
+            "/usr/local/bin/deltablast",
+            "-out", results_file,
+            "-db", "pdb",
+            "-query", sequence_file, 
+            "-outfmt", str(format),
+            "-remote",
+            "-inclusion_ethresh", "0.05",
+            "-domain_inclusion_ethresh", "0.05"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+
+        output, err = proc.communicate()[0]
+        print err
+        # with open(results_file, 'w') as o:
+        #     o.write(output)
+        # return output
 
 
 
@@ -137,6 +218,67 @@ class BLAST:
                     hsp_hseq = hsp.find("Hsp_hseq").text
 
                     matches[query_id].append((hit_id, hsp_identity, hsp_gaps, hsp_qseq, hsp_hseq))
+        return matches
+
+
+    """
+    Returns Q-templates dictionary
+    """
+    def iterParseHits(self, xml):
+
+        # root = ET.fromstring(xml)
+        # print self.root
+        matches = defaultdict(list)
+
+        context = ET.iterparse(xml, events=("start", "end"))
+        context = iter(context)
+        event, root = context.next()
+
+        BLASTHits = namedtuple('BLASTHits', 'hit, score, bit_score, evalue, identity, positive, gaps, align_len, qseq, hseq')
+
+        cnt = 0
+        for event, elem in context:
+            if event == "end" and elem.tag == "Iteration":
+                root.clear()
+                ##### BLAST iteration parsing #####
+                # for iteration in root.findall("./BlastOutput_iterations/Iteration"):
+                iteration = elem
+                query_id = iteration.find("Iteration_query-def").text
+                query_id = query_id[0:5] # 2HLEA from 2HLEA_ATOM
+                cnt += 1
+                print cnt, query_id
+                # if cnt > 15: break
+                # print iteration
+                for hit in iteration.findall("Iteration_hits/Hit"):
+                    # print hit
+                    hit_id = hit.find("Hit_accession").text
+                    # print hit_id
+                    hit_len = int(hit.find("Hit_len").text)
+                    for hsp in hit.findall("Hit_hsps/Hsp"):
+                        hsp_identity = int(hsp.find("Hsp_identity").text)
+                        hsp_positive = int(hsp.find("Hsp_positive").text)
+                        hsp_score = int(hsp.find("Hsp_score").text)
+                        hsp_bit_score = float(hsp.find("Hsp_bit-score").text)
+                        hsp_evalue = float(hsp.find("Hsp_evalue").text)
+                        
+                        # if not identity_filter(hsp_identity): continue
+                        hsp_gaps = int(hsp.find("Hsp_gaps").text)
+                        hsp_align_len = int(hsp.find("Hsp_align-len").text)
+
+                        # alignment:
+                        hsp_qseq = hsp.find("Hsp_qseq").text
+                        hsp_hseq = hsp.find("Hsp_hseq").text
+
+                        match = BLASTHits._make((hit_id, hsp_score, hsp_bit_score, hsp_evalue, hsp_identity, hsp_positive, hsp_gaps, hsp_align_len, hsp_qseq, hsp_hseq))
+                        matches[query_id].append(match)
+
+                elem.clear()
+
+        # for event, elem in iterparse(xml):
+        #     if elem.tag == "Iteration":
+        #         # .... process
+        #         elem.clear()
+
         return matches
 
 
@@ -280,7 +422,6 @@ class Complexes:
                 template_pdb1 = hit_id1[0:4]
                 template_chain1 = hit_id1[5:6]
 
-
                 for match2 in hits[pdb+chain2]:
                     # print match2
                     hit_id2, hsp_identity2, hsp_gaps2, hsp_qseq2, hsp_hseq2 = match2
@@ -327,6 +468,10 @@ class Complexes:
     def alignments(self, templates, query_fasta_file):
         model_num = 0
         m = Modeller()
+        
+        wrapper = TextWrapper(break_on_hyphens = False, width = 60)
+        
+
         for query_pdb, chains_complexes in templates.iteritems():
             for (query_chain1, query_chain2), template_pdbs in chains_complexes.iteritems():
                 for tpl_pdb, tpl_chain1, tpl_chain2 in template_pdbs:
@@ -357,18 +502,18 @@ class Complexes:
                             o.write("structureX:{}:{}:{}:{}:{}::::\n".format(
                                 tpl_pdb, ".", tpl_chain1, ".", tpl_chain2))
 
-                            o.write(fill(sequences[tpl_pdb+tpl_chain1], 60))
+                            o.write(wrapper.fill(sequences[tpl_pdb+tpl_chain1]))
                             o.write("\n/\n")
-                            o.write(fill(sequences[tpl_pdb+tpl_chain2], 60))
+                            o.write(wrapper.fill(sequences[tpl_pdb+tpl_chain2]))
                             o.write("\n*\n")
 
                             seq_id = "{}{}{}_{}{}{}".format(query_pdb, query_chain1, query_chain2, tpl_pdb, tpl_chain1, tpl_chain2)
                             o.write(">P1;query{}\n".format(seq_id))
                             o.write("sequence:query{}:{}:{}:{}:{}::::\n".format(seq_id, ".", query_chain1, ".", query_chain2))
                             # from 1:A to 100:B
-                            o.write(fill(sequences[query_pdb+query_chain1], 60))
+                            o.write(wrapper.fill(sequences[query_pdb+query_chain1]))
                             o.write("\n/\n")
-                            o.write(fill(sequences[query_pdb+query_chain1], 60))
+                            o.write(wrapper.fill(sequences[query_pdb+query_chain2]))
                             o.write("\n*\n")
 
     def models(self, templates):
@@ -393,10 +538,10 @@ class Complexes:
 
 #############################################################
 
-def workflow():
+def workflow1():
 
     skempi = SKEMPI()
-    dimers = skempi.getDimers()
+    dimers = skempi.getDimers() 
     # print dimers
 
     pdb = PDB()
@@ -422,5 +567,40 @@ def workflow():
     # verify model building
     # c.models(tpl_complexes)
 
+
+def workflow2():
+    """
+        Preparing a benchmark with Human dimers, <2.5A resolution, with two chains in bioassembly, each chain at least 50 residues long
+    """
+    sr = SearchResults()
+    results = sr.getTabularResults()
+    results_filtered = sr.filterPDB(results)
+
+    query_fasta = "../Workflow/BLAST-results/query_sequence.fasta"
+    sr.searchToFasta(results_filtered, query_fasta)
+
+    BLAST_xml = "../Workflow/BLAST-results/BLAST_hits.xml"
+    blast = BLAST()
+    blast.runDeltaBLAST(query_fasta, BLAST_xml)
+    print "DONE"
+    # hits = blast.parseHits(xml)
+    # print hits
+
+def workflow3():
+    BLAST_xml = "../Workflow/BLAST-results/localDeltaBLAST_hits.xml"
+    blast = BLAST()
+    
+    with open(BLAST_xml, 'r') as f:
+        query_hits = blast.iterParseHits(f)
+
+        with open("deltablast_report.tab", 'w') as o:
+            o.write("query\thit\tscore\tbit_score\tevalue\tidentity\tpositive\tgaps\talign_len\n")
+            for query, hits in query_hits.iteritems():
+                for h in hits:
+                    # print h
+                    o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                        query, h.hit, h.score, h.bit_score, h.evalue, h.identity, h.positive, h.gaps, h.align_len))
+    print "DONE"
+
 if __name__ == '__main__':
-    workflow()
+    workflow3()

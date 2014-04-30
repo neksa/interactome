@@ -1,0 +1,133 @@
+=== 7
+
+TANS760101  -0.2    -0.16
+TANS760102  -0.32   -0.27
+BRYS930101  0.11    0.17
+THOP960101  0.05    0.12
+MIRL960101  0.18    0.25
+VENM980101  0.03    0.09
+BASU010101  -0.15   0.02
+MIYS850102  -0.04   -0.0
+MIYS850103  0.18    0.25
+MIYS960101  -0.05   -0.01
+MIYS960102  0.25    0.28
+MIYS960103  -0.41   -0.34
+MIYS990106  0.18    0.21
+MIYS990107  0.25    0.3
+LIWA970101  0.09    0.11
+KESO980101  -0.29   -0.21
+KESO980102  0.23    0.3
+MOOG990101  0.32    0.3
+BETM990101  0.1 0.14
+TOBD000101  0.1 0.16
+TOBD000102  0.16    0.19
+KOLA930101  0.11    0.21
+SKOJ970101  -0.15   -0.11
+SKOJ000101  -0.27   -0.21
+SKOJ000102  -0.26   -0.19
+BONM030101  -0.04   0.06
+BONM030102  -0.11   -0.06
+BONM030103  -0.22   -0.17
+BONM030104  0.51    0.56
+BONM030105  0.59    0.61
+BONM030106  0.48    0.52
+MICC010101  0.02    0.04
+SIMK990101  0.23    0.33
+SIMK990102  0.31    0.28
+SIMK990103  0.12    0.14
+SIMK990104  0.13    0.13
+SIMK990105  0.22    0.36
+ZHAC000101  0.27    0.3
+ZHAC000104  0.34    0.35
+ZHAC000106  0.12    0.18
+
+=== 6 
+
+compare GONA00000 from potential_5.index with all the matrices
+TANS760101  0.26    0.21    Statistical contact potential derived from 25 x-ray protein structures
+TANS760102  0.29    0.24    Number of contacts between side chains derived from 25 x-ray protein structures
+BRYS930101  -0.12   -0.15   Distance-dependent statistical potential (only energies of contacts within
+THOP960101  -0.01   -0.06   Mixed quasichemical and optimization-based protein contact potential
+MIRL960101  -0.22   -0.27   Statistical potential derived by the maximization of the harmonic mean of Z
+VENM980101  -0.03   -0.09   Statistical potential derived by the maximization of the perceptron criterion
+BASU010101  0.15    0.03    Optimization-based potential derived by the modified perceptron criterion
+MIYS850102  0.12    0.09    Quasichemical energy of transfer of amino acids from water to the protein
+MIYS850103  -0.21   -0.26   Quasichemical energy of interactions in an average buried environment
+MIYS960101  0.13    0.11    Quasichemical energy of transfer of amino acids from water to the protein
+MIYS960102  -0.27   -0.3    Quasichemical energy of interactions in an average buried environment
+MIYS960103  0.38    0.29    Number of contacts between side chains derived from 1168 x-ray protein
+MIYS990106  -0.14   -0.14   Quasichemical energy of transfer of amino acids from water to the protein
+MIYS990107  -0.27   -0.31   Quasichemical energy of interactions in an average buried environment
+LIWA970101  -0.0    -0.01   Modified version of the Miyazawa-Jernigan transfer energy
+KESO980101  0.34    0.27    Quasichemical transfer energy derived from interfacial regions of
+KESO980102  -0.23   -0.28   Quasichemical energy in an average protein environment derived from interfacial
+MOOG990101  -0.29   -0.3    Quasichemical potential derived from interfacial regions of protein-protein
+BETM990101  -0.09   -0.1    Modified version of the Miyazawa-Jernigan transfer energy
+TOBD000101  -0.06   -0.1    Optimization-derived potential obtained for small set of decoys
+TOBD000102  -0.13   -0.13   Optimization-derived potential obtained for large set of decoys
+KOLA930101  -0.11   -0.17   Statistical potential derived by the quasichemical approximation
+SKOJ970101  0.19    0.18    Statistical potential derived by the quasichemical approximation
+SKOJ000101  0.29    0.28    Statistical quasichemical potential with the partially composition-corrected
+SKOJ000102  0.28    0.25    Statistical quasichemical potential with the composition-corrected pair scale
+BONM030101  0.05    -0.02   Quasichemical statistical potential for the antiparallel orientation of
+BONM030102  0.09    0.06    Quasichemical statistical potential for the intermediate orientation of
+BONM030103  0.19    0.18    Quasichemical statistical potential for the parallel orientation of interacting
+BONM030104  -0.49   -0.57   Distances between centers of interacting side chains in the antiparallel
+BONM030105  -0.59   -0.63   Distances between centers of interacting side chains in the intermediate
+BONM030106  -0.49   -0.54   Distances between centers of interacting side chains in the parallel
+MICC010101  -0.03   -0.03   Optimization-derived potential
+SIMK990101  -0.24   -0.33   Distance-dependent statistical potential (contacts within 0-5 Angstrooms)
+SIMK990102  -0.35   -0.31   Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)
+SIMK990103  -0.17   -0.18   Distance-dependent statistical potential (contacts within 7.5-10 Angstrooms)
+SIMK990104  -0.15   -0.14   Distance-dependent statistical potential (contacts within 10-12 Angstrooms)
+SIMK990105  -0.26   -0.37   Distance-dependent statistical potential (contacts longer than 12 Angstrooms)
+ZHAC000101  -0.2    -0.24   Environment-dependent residue contact energies (rows = helix, cols = helix)
+ZHAC000104  -0.28   -0.3    Environment-dependent residue contact energies (rows = strand, cols = strand)
+ZHAC000106  -0.05   -0.11   Environment-dependent residue contact energies (rows = coil, cols = coil)
+
+== 5 
+
+TANS760101  0.27    0.21    Statistical contact potential derived from 25 x-ray protein structures
+TANS760102  0.23    0.23    Number of contacts between side chains derived from 25 x-ray protein structures
+BRYS930101  -0.16   -0.13   Distance-dependent statistical potential (only energies of contacts within
+THOP960101  0.01    -0.02   Mixed quasichemical and optimization-based protein contact potential
+MIRL960101  -0.33   -0.33   Statistical potential derived by the maximization of the harmonic mean of Z
+VENM980101  -0.09   -0.12   Statistical potential derived by the maximization of the perceptron criterion
+BASU010101  0.09    0.02    Optimization-based potential derived by the modified perceptron criterion
+MIYS850102  0.17    0.11    Quasichemical energy of transfer of amino acids from water to the protein
+MIYS850103  -0.32   -0.31   Quasichemical energy of interactions in an average buried environment
+MIYS960101  0.19    0.14    Quasichemical energy of transfer of amino acids from water to the protein
+MIYS960102  -0.38   -0.36   Quasichemical energy of interactions in an average buried environment
+MIYS960103  0.31    0.26    Number of contacts between side chains derived from 1168 x-ray protein
+MIYS990106  -0.13   -0.14   Quasichemical energy of transfer of amino acids from water to the protein
+MIYS990107  -0.4    -0.38   Quasichemical energy of interactions in an average buried environment
+LIWA970101  0.07    0.04    Modified version of the Miyazawa-Jernigan transfer energy
+KESO980101  0.3 0.26    Quasichemical transfer energy derived from interfacial regions of
+KESO980102  -0.32   -0.3    Quasichemical energy in an average protein environment derived from interfacial
+MOOG990101  -0.23   -0.27   Quasichemical potential derived from interfacial regions of protein-protein
+BETM990101  -0.15   -0.14   Modified version of the Miyazawa-Jernigan transfer energy
+TOBD000101  -0.04   -0.08   Optimization-derived potential obtained for small set of decoys
+TOBD000102  -0.09   -0.09   Optimization-derived potential obtained for large set of decoys
+KOLA930101  -0.18   -0.16   Statistical potential derived by the quasichemical approximation
+SKOJ970101  0.16    0.17    Statistical potential derived by the quasichemical approximation
+SKOJ000101  0.23    0.26    Statistical quasichemical potential with the partially composition-corrected
+SKOJ000102  0.22    0.23    Statistical quasichemical potential with the composition-corrected pair scale
+BONM030101  0.04    0.0 Quasichemical statistical potential for the antiparallel orientation of
+BONM030102  0.03    0.04    Quasichemical statistical potential for the intermediate orientation of
+BONM030103  0.09    0.12    Quasichemical statistical potential for the parallel orientation of interacting
+BONM030104  -0.39   -0.47   Distances between centers of interacting side chains in the antiparallel
+BONM030105  -0.47   -0.52   Distances between centers of interacting side chains in the intermediate
+BONM030106  -0.42   -0.44   Distances between centers of interacting side chains in the parallel
+MICC010101  0.01    -0.01   Optimization-derived potential
+SIMK990101  -0.34   -0.36   Distance-dependent statistical potential (contacts within 0-5 Angstrooms)
+SIMK990102  -0.47   -0.4    Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)
+SIMK990103  -0.32   -0.29   Distance-dependent statistical potential (contacts within 7.5-10 Angstrooms)
+SIMK990104  -0.26   -0.25   Distance-dependent statistical potential (contacts within 10-12 Angstrooms)
+SIMK990105  -0.41   -0.4    Distance-dependent statistical potential (contacts longer than 12 Angstrooms)
+ZHAC000101  -0.1    -0.16   Environment-dependent residue contact energies (rows = helix, cols = helix)
+ZHAC000104  -0.21   -0.23   Environment-dependent residue contact energies (rows = strand, cols = strand)
+ZHAC000106  0.01    -0.03   Environment-dependent residue contact energies (rows = coil, cols = coil)
+
+=== 10
+
+

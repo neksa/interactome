@@ -1,0 +1,40 @@
+
+
+** Essential literature **
+
+- Statistical Potential:
+ Chen, W. W. & Shakhnovich, E. I. (2005). Lessons from the design of a novel atomic potential for protein folding. Protein Sci. 14, 1741–1752.
+
+ Zhou, H. & Zhou, Y. (2002). Distance-scaled, finite ideal-gas reference state improves structure-derived potentials of mean force for structure selection and stability prediction. Protein Sci. 11, 2714–2726.
+
+ Skolnick, J., Jaroszewski, L., Kolinski, A. & Godzik, A. (1997). Derivation and testing of pair potentials for protein folding. When is the quasichemical approx- imation correct? Protein Sci. 6, 676–688.
+
+Miyazawa, S. & Jernigan, R. L. (1996). Residue-residue potentials with a favorable contact pair term and an unfavorable high packing density term, for simulation and threading. J. Mol. Biol. 256, 623–644.
+
+Dehouck, Y., Gilis, D. & Rooman, M. (2006). A new generation of statistical potentials for proteins. Biophys. J. 90, 4010–4017.
+
+Fitzgerald, J. E., Jha, A. K., Colubri, A., Sosnick, T. R. & Freed, K. F. (2007). Reduced Cβ statistical potentials can outperform all-atom potentials in decoy identifi- cation. Protein Sci. 16, 2123–2139.
+
+Buchete, N. V., Straub, J. E. & Thirumalai, D. (2004). Development of novel statistical potentials for protein fold recognition. Curr. Opin. Struct. Biol. 14, 225–232.
+
+ Gohlke, H. & Klebe, G. (2001). Statistical potentials and scoring functions applied to protein-ligand bind- ing. Curr. Opin. Struct. Biol. 11, 231–235.
+
+
+Jernigan, R. L. & Bahar, I. (1996). Structure-derived potentials and protein simulations. Curr. Opin. Struct. Biol. 6, 195–209.
+
+Moult, J. (1997). Comparison of database potentials and molecular mechanics force fields. Curr. Opin. Struct. Biol. 7, 194–199.
+
+Lazaridis, T. & Karplus, M. (2000). Effective energy functions for protein structure prediction. Curr. Opin. Struct. Biol. 10, 139–145.
+
+Skolnick, J. (2006). In quest of an empirical potential for protein structure prediction. Curr. Opin. Struct. Biol. 16, 166–171.
+
+Zhang, J., Chen, R. & Liang, J. (2006). Empirical potential function for simplified protein models: com- bining contact and local sequence-structure descrip- tors. Proteins: Struct. Funct. Genet. 63, 949–960.
+
+
+
+- Orientation:
+
+Buchete, N. V., Straub, J. E. & Thirumalai, D. (2004). Orientational potentials extracted from protein struc- tures improve native fold recognition. Protein Sci. 13, 862–874.
+
+Mukherjee, A., Bhimalapuram, P. & Bagchi, B. (2005). Orientation-dependent potential of mean force for protein folding. J. Chem. Phys. 123, 014901.
+
