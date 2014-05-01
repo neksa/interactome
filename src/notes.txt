@@ -1,0 +1,23 @@
+
+Uniprot all human proteins
+
+reviewed from complete proteome
+
+additionaly they have some isoforms
+
+http://www.uniprot.org/uniprot/?query=organism%3a9606+AND+keyword%3a%22Complete+proteome+%5bKW-0181%5d%22+reviewed%3ayes&format=*&compress=yes
+
+---------
+
+
+rsync -avz -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" --progress /root/bigfile.txt username@198.211.117.129:/
+rsync -avz -e "ssh" --partial --progress agoncear@hexagon.ii.uib.no:/home/cbu/agoncear/work/NAMD/output .
+
+---------
+
+
+
+BLAST at RCSB with a chain as ID, returns XML
+
+http://www.rcsb.org/pdb/rest/getBlastPDB1?structureId=4HHB&chainId=B&eCutOff=10.0&matrix=BLOSUM62&outputFormat=XML
+

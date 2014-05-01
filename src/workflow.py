@@ -1,561 +1,69 @@
 """
-Protein complex comparative modeling workflow.
+Protein-complex homology modeling pipeline
+Using PDB, Delta-BLAST, and MODELLER
 
-From query sequences to alignments and models
-
-Conventions:
-PDB code: 4 chars capitalized
-    PPPP
-chains: letters capitalized, follor PDB code. Up to 2 letters
-    AB
-
-dimer is represented by pdb code and two chain letters:
-    PPPPAB
-
-Alignments:
-    Modeller-compatible PIR format
+Benchmarking the quality of modeling by (re)modeling the human dimers
 """
 
-import xml.etree.ElementTree as ET
-from collections import defaultdict, namedtuple
-from textwrap import TextWrapper
-
-import httplib
-import xml.etree.ElementTree as ET
-import pickle
-import zlib
-import csv
 from itertools import islice
+from collections import defaultdict
 
-from modeller import * #model, environ, alignment
-from modeller.automodel import automodel    # Load the automodel class
+from pdb import PDB, PDBSearchResults, SKEMPI
+from modeller import Modeller
+from blast import BLAST
+from complexes import Complexes
 
-from cStringIO import StringIO
-
-import glob
-import subprocess
-
-class SearchResults:
-    def getTabularResults(self):
-        records = []
-        PDBSearchRecord = namedtuple('PDBSearchRecord', 'pdb, chain, resolution, source, tax, entity, sequence, chain_len, db_id')
-        with open("../Workflow/Searches/tabularResults.csv") as f:
-            reader = csv.reader(islice(f, 1, None), delimiter=',', quotechar='"')
-            for r in reader:
-                if len(r) > 0:
-                    rec = PDBSearchRecord._make(r)
-                    # yield rec
-                    records.append(rec)
-            return records    
-            # for rec in map(PDBSearchRecord._make, reader):
-            #     print rec.pdb, rec.chain, rec.resolution
-            #     print rec.sequence
-            #     print
-            #     records.append(rec)
-
-    def filterPDB(self, records):
-        excluded_pdb = []
-        min_chain_len = 50
-        tax_id = 9606
-        for rec in records:
-            try:
-                if int(rec.tax) != tax_id:
-                    excluded_pdb.append(rec.pdb)
-                    continue
-
-                if int(rec.chain_len) < min_chain_len:
-                    excluded_pdb.append(rec.pdb)
-                    continue
-            except:
-                excluded_pdb.append(rec.pdb)
-                continue                
-
-        excluded_pdb = set(excluded_pdb)
-        new_records = [rec for rec in records if rec.pdb not in excluded_pdb]
-        return new_records
-
-
-    def searchToFasta(self, records, fasta_file):
-        wrapper = TextWrapper(break_on_hyphens = False, width = 60)
-        with open(fasta_file, 'w') as o:
-            for r in records:
-                o.write(">{}{}\n".format(r.pdb.upper(), r.chain.upper()))
-                o.write("{}\n".format(wrapper.fill(r.sequence)))
-
-
-class SKEMPI:
-    def getDimers(self):
-        dimers = defaultdict(list)
-        with open("../SKEMPI/dimers.csv") as f:
-            for line in f:
-                pdb, chain1, chain2 = line.strip().split("_", 2)
-                dimers[pdb] = (chain1, chain2)
-        return dimers
-
-
-class BLAST:
-
-    def pirToQuery(self, pdb_chain_list, query_filename):
-        fnames = []
-        for pdb, (chain1, chain2) in pdb_chain_list.iteritems():
-            fname_format = "../Workflow/Sequences/{}{}.pir"
-            fname1 = fname_format.format(pdb, chain1)
-            fname2 = fname_format.format(pdb, chain2)
-            try:
-                f = open(fname1)
-                f.close()
-                f = open(fname2)
-                f.close()
-            except IOError:
-                print "Could not read sequence for one of the chains of structure PDB {}".format(pdb)
-                continue
-            fnames.append(fname1)
-            fnames.append(fname2)
-
-        sequence = ""
-        for fname in fnames:
-            with open(fname, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line.startswith("structure"): continue
-                    if line == "": continue
-                    if line.endswith("*"):
-                        line = line[:-1]
-                    if line.startswith(">"):
-                        line = ">" + line[4:9]
-                    sequence += line + "\n"
-
-        with open(query_filename, 'w') as o:
-            o.write(sequence)
-
-
-    """
-    Returns XML
-    """
-    def runBLASTP(self, sequence_file, results_file, format=5):
-
-        try:
-            with open(results_file, 'r') as f:
-                output = f.read()
-                return output
-        except IOError:
-            pass
-
-        proc = subprocess.Popen([
-            "/usr/local/ncbi/blast/bin/blastp",
-            "-out", results_file,
-            "-db", "pdb",
-            "-query", sequence_file, 
-            "-outfmt", str(format),
-            "-evalue", "1",
-            "-remote"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-
-        output, err = proc.communicate()[0]
-        print err
-        # with open(results_file, 'w') as o:
-        #     o.write(output)
-        # return output
-
-    """
-    Returns XML
-    """
-    def runDeltaBLAST(self, sequence_file, results_file, format=5):
-
-        try:
-            with open(results_file, 'r') as f:
-                output = f.read()
-                return output
-        except IOError:
-            pass
-
-        proc = subprocess.Popen([
-            "/usr/local/bin/deltablast",
-            "-out", results_file,
-            "-db", "pdb",
-            "-query", sequence_file, 
-            "-outfmt", str(format),
-            "-remote",
-            "-inclusion_ethresh", "0.05",
-            "-domain_inclusion_ethresh", "0.05"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-
-        output, err = proc.communicate()[0]
-        print err
-        # with open(results_file, 'w') as o:
-        #     o.write(output)
-        # return output
-
-
-
-    """
-    Returns Q-templates dictionary
-    """
-    def parseHits(self, xml, identity_filter = lambda x: 25 <= x < 100):
-
-        root = ET.fromstring(xml)
-        # print self.root
-        matches = defaultdict(list)
-
-        for iteration in root.findall("./BlastOutput_iterations/Iteration"):
-            query_id = iteration.find("Iteration_query-def").text
-            query_id = query_id[0:5] # 2HLEA from 2HLEA_ATOM
-            # print query_id
-            # print iteration
-            for hit in iteration.findall("Iteration_hits/Hit"):
-                # print hit
-                hit_id = hit.find("Hit_accession").text
-                # print hit_id
-                hit_len = int(hit.find("Hit_len").text)
-                for hsp in hit.findall("Hit_hsps/Hsp"):
-                    hsp_identity = int(hsp.find("Hsp_identity").text)
-                    
-                    if not identity_filter(hsp_identity): continue
-
-                    hsp_gaps = int(hsp.find("Hsp_gaps").text)
-                    hsp_align_len = int(hsp.find("Hsp_align-len").text)
-
-                    # alignment:
-                    hsp_qseq = hsp.find("Hsp_qseq").text
-                    hsp_hseq = hsp.find("Hsp_hseq").text
-
-                    matches[query_id].append((hit_id, hsp_identity, hsp_gaps, hsp_qseq, hsp_hseq))
-        return matches
-
-
-    """
-    Returns Q-templates dictionary
-    """
-    def iterParseHits(self, xml):
-
-        # root = ET.fromstring(xml)
-        # print self.root
-        matches = defaultdict(list)
-
-        context = ET.iterparse(xml, events=("start", "end"))
-        context = iter(context)
-        event, root = context.next()
-
-        BLASTHits = namedtuple('BLASTHits', 'hit, score, bit_score, evalue, identity, positive, gaps, align_len, qseq, hseq')
-
-        cnt = 0
-        for event, elem in context:
-            if event == "end" and elem.tag == "Iteration":
-                root.clear()
-                ##### BLAST iteration parsing #####
-                # for iteration in root.findall("./BlastOutput_iterations/Iteration"):
-                iteration = elem
-                query_id = iteration.find("Iteration_query-def").text
-                query_id = query_id[0:5] # 2HLEA from 2HLEA_ATOM
-                cnt += 1
-                print cnt, query_id
-                # if cnt > 15: break
-                # print iteration
-                for hit in iteration.findall("Iteration_hits/Hit"):
-                    # print hit
-                    hit_id = hit.find("Hit_accession").text
-                    # print hit_id
-                    hit_len = int(hit.find("Hit_len").text)
-                    for hsp in hit.findall("Hit_hsps/Hsp"):
-                        hsp_identity = int(hsp.find("Hsp_identity").text)
-                        hsp_positive = int(hsp.find("Hsp_positive").text)
-                        hsp_score = int(hsp.find("Hsp_score").text)
-                        hsp_bit_score = float(hsp.find("Hsp_bit-score").text)
-                        hsp_evalue = float(hsp.find("Hsp_evalue").text)
-                        
-                        # if not identity_filter(hsp_identity): continue
-                        hsp_gaps = int(hsp.find("Hsp_gaps").text)
-                        hsp_align_len = int(hsp.find("Hsp_align-len").text)
-
-                        # alignment:
-                        hsp_qseq = hsp.find("Hsp_qseq").text
-                        hsp_hseq = hsp.find("Hsp_hseq").text
-
-                        match = BLASTHits._make((hit_id, hsp_score, hsp_bit_score, hsp_evalue, hsp_identity, hsp_positive, hsp_gaps, hsp_align_len, hsp_qseq, hsp_hseq))
-                        matches[query_id].append(match)
-
-                elem.clear()
-
-        # for event, elem in iterparse(xml):
-        #     if elem.tag == "Iteration":
-        #         # .... process
-        #         elem.clear()
-
-        return matches
-
-
-class PDB:
-    def fetchRemoteStructure(self, pdb):
-        conn = httplib.HTTPConnection("www.rcsb.org", timeout = 10)
-        print "Downloading PDB {}...".format(pdb)
-        conn.request("GET", "/pdb/download/downloadFile.do?fileFormat=pdb&compression=NO&structureId="+pdb.lower())
-        r1 = conn.getresponse()
-        
-        if r1.status == httplib.NOT_FOUND: # 404
-            raise ValueError("Structure not found for PDB %s (www.rcsb.org)" % (pdb,))
-            
-        # print r1.status, r1.reason
-        pdb_structure = r1.read()
-        return pdb_structure
-
-
-    def getStructureFiles(self, pdb_list):
-        for pdb in pdb_list:
-            fname = "../Workflow/Structures/{}.pdb".format(pdb)
-            try:
-                f = open(fname, 'r')
-                f.close()
-                continue
-            except IOError:
-                pass
-            
-            try:
-                structure = self.fetchRemoteStructure(pdb)
-            except ValueError:
-                print "Attention: structure not found in PDB", pdb
-                continue
-
-            try:
-                with open(fname, 'w') as o:
-                    o.write(structure)
-            except IOError:
-                print "Could not save PDB structure downloded from the PDB"
-
-
-    """
-    Returns dictionary
-    chain: (header, sequence)
-    """
-    def extractSEQRES(self, pdb_list):
-        m = None
-        for pdb in pdb_list:
-            fnames_pir = "../Workflow/Sequences/{}*.pir".format(pdb)
-            fname_struct = "../Workflow/Structures/{}.pdb".format(pdb)
-
-            if len(glob.glob(fnames_pir)) > 0:
-                # print "File exists. skipping", glob.glob(fnames_pir)
-                continue
-
-            if m == None:
-                m = Modeller()
-
-            try:
-                f = open(fname_struct, 'r')
-                f.close()
-                m.writeChainSeq(pdb)
-
-            except IOError:
-                print "No structure for PDB {}".format(pdb)
-                continue
-
-
-    """
-    Returns dictionary
-    chain: (header, sequence)
-    """
-    def extractATOMSEQ(self):
-        pass
-
-
-class Modeller:
-
-    def __init__(self):
-        # log.verbose()
-
-        self.env = environ()
-        self.env.io.atom_files_directory = ['.', '../Workflow/Structures/']
-
-
-    def writeChainSeq(self, pdb):
-        mdl = model(self.env, file="{}.pdb".format(pdb))
-        for c in mdl.chains:
-            if c.filter(structure_types='structureN structureX'):
-                filename = "../Workflow/Sequences/{}{}.pir".format(pdb, c.name)
-                print("Wrote out " + filename)
-                atom_file, align_code = c.atom_file_and_code(filename)
-                c.write(filename, atom_file, align_code,
-                            format='PIR',
-                            chop_nonstd_termini=True)
-
-    def align(self, query_fasta_file, query_code, tpl_code):
-        aln = alignment(self.env)
-        aln.append(file=query_fasta_file, alignment_format='FASTA', align_codes=(query_code))
-        tpl_chain_file = "../Workflow/Sequences/{}.pir".format(tpl_code)
-        aln.append(file=tpl_chain_file, alignment_format='PIR')
-        aln.salign(overhang=10, gap_penalties_1d=(-450, -50), output='ALIGNMENT')
-        aln.write(file='modeller_tmp_aln.fasta', alignment_format='FASTA')
-
-        
-        aln_text = ''
-        with open('modeller_tmp_aln.fasta', 'r') as f:
-            aln_text = f.read()
-        return aln_text
-        # aln_B = alignment(self.env)
-        # aln_B.append(file=query_fasta_file, alignment_format='FASTA', alignment_codes=query_B_code)
-        # aln_B.append(file=tpl_chain2_file, alignment_format='PIR')
-        
-
-    def model(self, ali, template, query):
-
-        a = automodel(self.env,
-                    alnfile  = ali ,
-                    knowns   = template,
-                    sequence = 'query'+query)
-
-        a.starting_model = 1
-        a.ending_model   = 1
-        a.make()
-
-
-class Complexes:
-    """
-    returns dictionary
-    query: template/pdb
-    """
-    def templatesComplexes(self, pdb_chain_list, hits):
-        templates = defaultdict(dict)
-        for pdb, (chain1, chain2) in pdb_chain_list.iteritems():
-            # print pdb, chain1, chain2
-            templates[pdb][(chain1, chain2)] = set()
-
-            for match1 in hits[pdb+chain1]:
-                # print match1
-                hit_id1, hsp_identity1, hsp_gaps1, hsp_qseq1, hsp_hseq1 = match1
-                template_pdb1 = hit_id1[0:4]
-                template_chain1 = hit_id1[5:6]
-
-                for match2 in hits[pdb+chain2]:
-                    # print match2
-                    hit_id2, hsp_identity2, hsp_gaps2, hsp_qseq2, hsp_hseq2 = match2
-                    template_pdb2 = hit_id2[0:4]
-                    template_chain2 = hit_id2[5:6]
-
-                    # take only comlex templates
-                    if template_pdb1 != template_pdb2: continue
-                    templates[pdb][(chain1, chain2)].add((template_pdb1, template_chain1, template_chain2))
-                    # print template_pdb1
-        return templates
-
-
-    def getTemplatePDBCodes(self, templates):
-        pdb_list = []
-        for chains_complexes in templates.itervalues():
-            for pdbs in chains_complexes.itervalues():
-                for pdb, tpl_chain1, tpl_chain2 in pdbs:
-                    pdb_list.append(pdb)
-        return pdb_list
-
-
-    def fastaToSequences(self, fasta):
-        seq_id = ""
-        seq = ""
-        sequences = {}
-        for line in fasta.split("\n"):
-            # line = line.strip()
-            if line.startswith(">"):
-                if seq_id != "": sequences[seq_id] = seq
-                seq_id = line[1:6]
-                seq = ""
-            else:
-                seq += line
-            print line, seq_id, seq
-
-        if seq_id != "": sequences[seq_id] = seq
-        return sequences
-
-    """
-    Returns alignments:
-    dictionary, chain sequences
-    """
-    def alignments(self, templates, query_fasta_file):
-        model_num = 0
-        m = Modeller()
-        
-        wrapper = TextWrapper(break_on_hyphens = False, width = 60)
-        
-
-        for query_pdb, chains_complexes in templates.iteritems():
-            for (query_chain1, query_chain2), template_pdbs in chains_complexes.iteritems():
-                for tpl_pdb, tpl_chain1, tpl_chain2 in template_pdbs:
-                    model_num += 1
-                    print "* Model alignment {}: ".format(model_num)
-                    print "  - Query complex [{} {} {}]".format(query_pdb, query_chain1, query_chain2)
-                    print "  - Template complex : {} {} {}".format(tpl_pdb, tpl_chain1, tpl_chain2)
-
-                    sequences = {}
-                    query_codes = (query_pdb + query_chain1, query_pdb + query_chain2)
-                    tpl_codes = (tpl_pdb + tpl_chain1, tpl_pdb + tpl_chain2)
-                    for i, query_code in enumerate(query_codes):
-                        tpl_code = tpl_codes[i]
-                        fasta = m.align(query_fasta_file, query_code, tpl_code)
-                        sequences.update(self.fastaToSequences(fasta))
-
-                    # print sequences
-                    
-                    ali_filename = "../Workflow/Alignments/query{}{}{}_{}{}{}.ali".format(
-                        query_pdb, query_chain1, query_chain2, tpl_pdb, tpl_chain1, tpl_chain2)
-
-                    with open(ali_filename, 'w') as o:
-
-                            o.write(">P1;"+tpl_pdb +"\n") #+tpl_chain1+tpl_chain2+"\n")
-                            # o.write("structureX:{}:{}:{}:{}:{}::::\n".format(
-                            #     tpl_pdb+tpl_chain1+tpl_chain2, ".", tpl_chain1, ".", tpl_chain2))
-
-                            o.write("structureX:{}:{}:{}:{}:{}::::\n".format(
-                                tpl_pdb, ".", tpl_chain1, ".", tpl_chain2))
-
-                            o.write(wrapper.fill(sequences[tpl_pdb+tpl_chain1]))
-                            o.write("\n/\n")
-                            o.write(wrapper.fill(sequences[tpl_pdb+tpl_chain2]))
-                            o.write("\n*\n")
-
-                            seq_id = "{}{}{}_{}{}{}".format(query_pdb, query_chain1, query_chain2, tpl_pdb, tpl_chain1, tpl_chain2)
-                            o.write(">P1;query{}\n".format(seq_id))
-                            o.write("sequence:query{}:{}:{}:{}:{}::::\n".format(seq_id, ".", query_chain1, ".", query_chain2))
-                            # from 1:A to 100:B
-                            o.write(wrapper.fill(sequences[query_pdb+query_chain1]))
-                            o.write("\n/\n")
-                            o.write(wrapper.fill(sequences[query_pdb+query_chain2]))
-                            o.write("\n*\n")
-
-    def models(self, templates):
-        model_num = 0
-        m = Modeller()
-        for query_pdb, chains_complexes in templates.iteritems():
-            for (query_chain1, query_chain2), template_pdbs in chains_complexes.iteritems():
-                for tpl_pdb, tpl_chain1, tpl_chain2 in template_pdbs:
-                    model_num += 1
-                    print "* Model building {}: ".format(model_num)
-                    print "  - Query complex [{} {} {}]".format(query_pdb, query_chain1, query_chain2)
-                    print "  - Template complex : {} {} {}".format(tpl_pdb, tpl_chain1, tpl_chain2)
-
-                    query_code = "{}{}{}_{}{}{}".format(
-                        query_pdb, query_chain1, query_chain2, tpl_pdb, tpl_chain1, tpl_chain2)
-                    ali_filename = "../Workflow/Alignments/query{}.ali".format(query_code)
-                    
-                    tpl_code = tpl_pdb # + tpl_chain1 + tpl_chain2
-                    # query_code = query_pdb + query_chain1 + query_chain2
-
-                    m.model(ali_filename, tpl_code, query_code)
 
 #############################################################
+#############################################################
 
-def workflow1():
+def skempi_benchmark_workflow():
+    """
+    1. Take dimers from SKEMPI
+    2. Download PDB files
+    3. Extract sequences from PDB files 
+    4. And use them as queries in BLASTp
+    5. In BLAST hits find templates that are protein complexes
+    6. Format hetero-dimer alignments according to MODELLER rules
+    7. Run MODELLER with the alignments to produce models of complexes
 
+    Protein complex comparative modeling workflow. From query sequences to alignments and models.
+
+    Conventions:
+    PDB code: 4 chars capitalized
+        PPPP
+    chains: letters capitalized, follor PDB code. Up to 2 letters
+        AB
+
+    dimer is represented by pdb code and two chain letters:
+        PPPPAB
+
+    Alignments:
+        Modeller-compatible PIR format
+    """
+
+    # Step 1
     skempi = SKEMPI()
     dimers = skempi.getDimers() 
     # print dimers
 
+    # Step 2
     pdb = PDB()
     pdb.getStructureFiles(dimers.keys())
+
+    # Step 3
     pdb.extractSEQRES(dimers.keys())
 
+    # Step 4 
     query_fasta = "../Workflow/BLAST-results/query_sequence.fasta"
     BLAST_xml = "../Workflow/BLAST-results/BLAST_hits.xml"
-
+    
     blast = BLAST()
     blast.pirToQuery(dimers, query_fasta)
     xml = blast.runBLASTP(query_fasta, BLAST_xml)
     hits = blast.parseHits(xml)
 
+    # Steps 5,6
     c = Complexes()
     tpl_complexes = c.templatesComplexes(dimers, hits)
     template_pdb_codes = c.getTemplatePDBCodes(tpl_complexes)
@@ -564,43 +72,152 @@ def workflow1():
     template_seqres = pdb.extractSEQRES(template_pdb_codes)
 
     c.alignments(tpl_complexes, query_fasta)
-    # verify model building
-    # c.models(tpl_complexes)
+    # Optional Step 7.  verify model building
+    c.models(tpl_complexes)
 
 
-def workflow2():
+#############################################################
+def human_benchmark_workflow_step1():
     """
-        Preparing a benchmark with Human dimers, <2.5A resolution, with two chains in bioassembly, each chain at least 50 residues long
+    Step 1:
+        1.1. Preparing a benchmark with Human dimers, <2.5A resolution, with two chains in bioassembly, each chain at least 50 residues long
+           Manually filter PDB entries using PDB website (Advanced search option),
+           Include the following fields: PDB ID,Chain ID,Resolution,Source,Taxonomy ID,Entity ID,Sequence,Chain Length,DB ID 
+           Save as ../Workflow/Searches/tabularResults.csv
+        1.2. Extract sequences from the search results and format them as FASTA
+        1.3. Run Delta-BLAST against PDB database with FASTA file as a query
     """
-    sr = SearchResults()
-    results = sr.getTabularResults()
-    results_filtered = sr.filterPDB(results)
-
+    search_results = "../Workflow/Searches/tabularResults.csv"
     query_fasta = "../Workflow/BLAST-results/query_sequence.fasta"
-    sr.searchToFasta(results_filtered, query_fasta)
-
     BLAST_xml = "../Workflow/BLAST-results/BLAST_hits.xml"
-    blast = BLAST()
-    blast.runDeltaBLAST(query_fasta, BLAST_xml)
-    print "DONE"
+
+    try:
+        with open(search_results): pass
+        print "Info: search results file found", search_results
+    except IOError:
+        print "Error: PDB search results file", search_results, "is missing"
+        return
+
+    try:
+        with open(query_fasta, 'r'): pass
+        print "Info: query fasta file found", query_fasta
+    except IOError:
+        print "Info: File", query_fasta, "is missing. Processing", search_results
+        sr = PDBSearchResults()
+        results = sr.getTabularResults()
+        results_filtered = sr.filterPDB(results)
+        sr.searchToFasta(results_filtered, query_fasta)
+
+    try:
+        with open(query_fasta, 'r'): pass
+    except IOError:
+        print "Error: Query fasta file", query_fasta, "is missing after search results processing"
+        return
+
+    try:
+        with open(BLAST_xml): pass
+        print "Info: BLAST results file found", BLAST_xml
+    except IOError:
+        blast = BLAST()
+        print "Info: running Delta BLAST. It may take a while..."
+        blast.runDeltaBLAST(query_fasta, BLAST_xml)
+
+    try:
+        with open(BLAST_xml): pass
+    except IOError:
+        print "Error: BLAST results expected but not found", BLAST_xml
+        return
+    
+    print "Step 1 DONE"
     # hits = blast.parseHits(xml)
     # print hits
 
-def workflow3():
+#############################################################
+def human_benchmark_workflow_step2():
+    """
+    Step 2.
+        Convert BLAST results from XML to a tab file with required fields
+    """
     BLAST_xml = "../Workflow/BLAST-results/localDeltaBLAST_hits.xml"
-    blast = BLAST()
+    blast_report = "deltablast_report.tab"
     
-    with open(BLAST_xml, 'r') as f:
-        query_hits = blast.iterParseHits(f)
+    try:
+        with open(BLAST_xml): pass
+    except IOError:
+        print "Error: BLAST results not found", BLAST_xml
+        return
 
-        with open("deltablast_report.tab", 'w') as o:
+    try: 
+        with open(blast_report): pass
+        print "Info: BLAST report found"
+    except IOError:
+        blast = BLAST()
+        print "Info: BLAST report not found. Converting BLAST results to a tab report. It may take a while..."
+        with open(BLAST_xml, 'r') as f, open(blast_report, 'w') as o:
+            query_hits = blast.iterParseHits(f)
             o.write("query\thit\tscore\tbit_score\tevalue\tidentity\tpositive\tgaps\talign_len\n")
             for query, hits in query_hits.iteritems():
                 for h in hits:
-                    # print h
                     o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                         query, h.hit, h.score, h.bit_score, h.evalue, h.identity, h.positive, h.gaps, h.align_len))
-    print "DONE"
+    print "Step 2 DONE"
 
+
+#############################################################
+def human_benchmark_workflow_step3():
+    """
+    Step 3.
+        Protein complex comparative modeling workflow. From query sequences to alignments and models.
+
+        Conventions:
+        PDB code: 4 chars capitalized
+            PPPP
+        chains: letters capitalized, follor PDB code. Up to 2 letters
+            AB
+
+        dimer is represented by pdb code and two chain letters:
+            PPPPAB
+
+        Alignments:
+            Modeller-compatible PIR format
+    """
+    blast_report = "deltablast_report.tab"
+    pdb_templates = "pdb_templates.tab"
+    pdb_interfaces_path = "../scoring/results/"
+
+    try:
+        with open(blast_report): pass
+        print "Info: BLAST report found"
+    except IOError:
+        print "Error: BLAST report not found", pdb_templates
+        return
+
+    c = Complexes()
+    try:
+        with open(pdb_templates): pass
+        print "Info: PDB templates summary found"
+    except IOError:
+        c.collectComplexes(pdb_interfaces_path, pdb_templates)
+
+    try:
+        with open(pdb_templates): pass
+    except IOError:
+        print "Error: No PDB templates summary found", pdb_templates
+        return
+
+
+    c.templatesComplexes()
+
+    print "Step 3 DONE"
+
+
+#############################################################
+def human_benchmark_workflow():
+    human_benchmark_workflow_step1()
+    human_benchmark_workflow_step2()
+    human_benchmark_workflow_step3()
+    human_benchmark_workflow_step4()
+
+
+#############################################################
 if __name__ == '__main__':
-    workflow3()
