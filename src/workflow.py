@@ -9,7 +9,7 @@ from itertools import islice
 from collections import defaultdict
 
 from pdb import PDB, PDBSearchResults, SKEMPI
-from modeller import Modeller
+from modellerwrapper import ModellerWrapper
 from blast import BLAST
 from complexes import Complexes
 
@@ -91,18 +91,20 @@ def human_benchmark_workflow_step1():
     query_fasta = "../Workflow/BLAST-results/query_sequence.fasta"
     BLAST_xml = "../Workflow/BLAST-results/BLAST_hits.xml"
 
+    print "Step 1"
+
     try:
         with open(search_results): pass
-        print "Info: search results file found", search_results
+        print "\tInfo: search results file found", search_results
     except IOError:
-        print "Error: PDB search results file", search_results, "is missing"
+        print "\tError: PDB search results file", search_results, "is missing"
         return
 
     try:
         with open(query_fasta, 'r'): pass
-        print "Info: query fasta file found", query_fasta
+        print "\tInfo: query fasta file found", query_fasta
     except IOError:
-        print "Info: File", query_fasta, "is missing. Processing", search_results
+        print "\tInfo: File", query_fasta, "is missing. Processing", search_results
         sr = PDBSearchResults()
         results = sr.getTabularResults()
         results_filtered = sr.filterPDB(results)
@@ -111,21 +113,21 @@ def human_benchmark_workflow_step1():
     try:
         with open(query_fasta, 'r'): pass
     except IOError:
-        print "Error: Query fasta file", query_fasta, "is missing after search results processing"
+        print "\tError: Query fasta file", query_fasta, "is missing after search results processing"
         return
 
     try:
         with open(BLAST_xml): pass
-        print "Info: BLAST results file found", BLAST_xml
+        print "\tInfo: BLAST results file found", BLAST_xml
     except IOError:
         blast = BLAST()
-        print "Info: running Delta BLAST. It may take a while..."
+        print "\tInfo: running Delta BLAST. It may take a while..."
         blast.runDeltaBLAST(query_fasta, BLAST_xml)
 
     try:
         with open(BLAST_xml): pass
     except IOError:
-        print "Error: BLAST results expected but not found", BLAST_xml
+        print "\tError: BLAST results expected but not found", BLAST_xml
         return
     
     print "Step 1 DONE"
@@ -141,18 +143,20 @@ def human_benchmark_workflow_step2():
     BLAST_xml = "../Workflow/BLAST-results/localDeltaBLAST_hits.xml"
     blast_report = "deltablast_report.tab"
     
+    print "Step 2"
+
     try:
         with open(BLAST_xml): pass
     except IOError:
-        print "Error: BLAST results not found", BLAST_xml
+        print "\tError: BLAST results not found", BLAST_xml
         return
 
     try: 
         with open(blast_report): pass
-        print "Info: BLAST report found"
+        print "\tInfo: BLAST report found", blast_report
     except IOError:
         blast = BLAST()
-        print "Info: BLAST report not found. Converting BLAST results to a tab report. It may take a while..."
+        print "\tInfo: BLAST report not found. Converting BLAST results to a tab report. It may take a while..."
         with open(BLAST_xml, 'r') as f, open(blast_report, 'w') as o:
             query_hits = blast.iterParseHits(f)
             o.write("query\thit\tscore\tbit_score\tevalue\tidentity\tpositive\tgaps\talign_len\n")
@@ -185,24 +189,26 @@ def human_benchmark_workflow_step3():
     pdb_templates = "pdb_templates.tab"
     pdb_interfaces_path = "../scoring/results/"
 
+    print "Step 3"
+
     try:
         with open(blast_report): pass
-        print "Info: BLAST report found"
+        print "\tInfo: BLAST report found", blast_report
     except IOError:
-        print "Error: BLAST report not found", pdb_templates
+        print "\tError: BLAST report not found", pdb_templates
         return
 
     c = Complexes()
     try:
         with open(pdb_templates): pass
-        print "Info: PDB templates summary found"
+        print "\tInfo: PDB templates summary found", pdb_templates
     except IOError:
-        c.collectComplexes(pdb_interfaces_path, pdb_templates)
+        c.collectTemplates(pdb_interfaces_path, pdb_templates)
 
     try:
         with open(pdb_templates): pass
     except IOError:
-        print "Error: No PDB templates summary found", pdb_templates
+        print "\tError: No PDB templates summary found", pdb_templates
         return
 
 
@@ -212,7 +218,14 @@ def human_benchmark_workflow_step3():
 
 
 #############################################################
-def human_benchmark_workflow():
+def human_benchmark_workflow_step4():
+    pass
+    print "Step 4"
+    print "Step 4 DONE"
+
+
+#############################################################
+def human_benchmark():
     human_benchmark_workflow_step1()
     human_benchmark_workflow_step2()
     human_benchmark_workflow_step3()
@@ -221,3 +234,6 @@ def human_benchmark_workflow():
 
 #############################################################
 if __name__ == '__main__':
+    human_benchmark()
+
+

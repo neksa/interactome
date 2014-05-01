@@ -22,7 +22,7 @@ import glob
 import subprocess
 
 
-class Modeller:
+class ModellerWrapper:
 
     def __init__(self, workflow="../Workflow/"):
         # log.verbose()
