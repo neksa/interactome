@@ -13,6 +13,7 @@ from modellerwrapper import ModellerWrapper
 from blast import BLAST
 from complexes import Complexes
 
+import math
 
 #############################################################
 #############################################################
@@ -159,11 +160,13 @@ def human_benchmark_workflow_step2():
         print "\tInfo: BLAST report not found. Converting BLAST results to a tab report. It may take a while..."
         with open(BLAST_xml, 'r') as f, open(blast_report, 'w') as o:
             query_hits = blast.iterParseHits(f)
-            o.write("query\thit\tscore\tbit_score\tevalue\tidentity\tpositive\tgaps\talign_len\n")
+            o.write("query\thit\tscore\tbit_score\tevalue\tidentical\tpositive\tgaps\talign_len\tqfrom\tqto\thfrom\thto\tqseq\thseq\n")
             for query, hits in query_hits.iteritems():
                 for h in hits:
-                    o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                        query, h.hit, h.score, h.bit_score, h.evalue, h.identity, h.positive, h.gaps, h.align_len))
+                    o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                        query, h.hit, h.score, h.bit_score, h.evalue,
+                        h.identical, h.positive, h.gaps, h.align_len,
+                        h.query_from, h.query_to, h.hit_from, h.hit_to, h.qseq, h.hseq))
     print "Step 2 DONE"
 
 
@@ -187,6 +190,7 @@ def human_benchmark_workflow_step3():
     """
     blast_report = "deltablast_report.tab"
     pdb_templates = "pdb_templates.tab"
+    matches_fname = "matches.tab"
     pdb_interfaces_path = "../scoring/results/"
 
     print "Step 3"
@@ -195,7 +199,7 @@ def human_benchmark_workflow_step3():
         with open(blast_report): pass
         print "\tInfo: BLAST report found", blast_report
     except IOError:
-        print "\tError: BLAST report not found", pdb_templates
+        print "\tError: BLAST report not found", blast_report
         return
 
     c = Complexes()
@@ -211,8 +215,40 @@ def human_benchmark_workflow_step3():
         print "\tError: No PDB templates summary found", pdb_templates
         return
 
+    templates = c.loadTemplates(pdb_templates)
 
-    c.templatesComplexes()
+    # load processed BLAST hits 
+    # Allow only hits with > 25% identity, E-value < 0.01, and at least 25 residues long alignments
+    hits = defaultdict(list)
+    with open(blast_report) as f:
+        for line in islice(f, 1, None):
+
+            query, hit, score, bit_score, evalue, identical, positive, gaps, align_len,\
+            q_from, q_to, h_from, h_to, qseq, hseq = line.strip().split("\t")
+
+            identity = int(round(float(identical) / float(align_len), 2) * 100.0) # percent identity
+            if identity < 25: continue
+            if float(align_len) < 20.0: continue
+            # if math.log10(float(evalue)) > -2: continue  # E < 0.01
+            if float(evalue) > 0.01: continue 
+            # hits[query].append(hit)
+
+            hit = hit.replace('_', '')
+            hits[hit].append((query, identity, (q_from, q_to), (h_from, h_to)))
+
+    matching_templates = c.templatesWithHits(templates, hits)
+    with open(matches_fname, 'w') as o:
+        o.write("query\ttemplate\tid_A\tq_A\tt_B\tsite_A\tid_B\tq_B\tt_B\tsite_B\n")
+        for tpl, queries in matching_templates.iteritems():
+            tpl_pdb, tpl_A, tpl_B = tpl
+            for q_pdb, q_A, q_B, params in queries:
+                identity_A, qfrom_A, qto_A, hfrom_A, hto_A, site_A = params[0]
+                identity_B, qfrom_B, qto_B, hfrom_B, hto_B, site_B = params[1]
+                o.write("{}\t{}\t{}\t{}-{}\t{}-{}\t{}\t{}\t{}-{}\t{}-{}\t{}\n".format(
+                    q_pdb + q_A + q_B,
+                    tpl_pdb + tpl_A + tpl_B,
+                    identity_A, qfrom_A, qto_A, hfrom_A, hto_A, site_A,
+                    identity_B, qfrom_B, qto_B, hfrom_B, hto_B, site_B))
 
     print "Step 3 DONE"
 

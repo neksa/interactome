@@ -1,3 +1,16 @@
+"""
+"""
+import xml.etree.ElementTree as ET
+from collections import defaultdict, namedtuple
+from textwrap import TextWrapper
+
+import httplib
+import csv
+from itertools import islice
+from cStringIO import StringIO
+
+import glob
+import subprocess
 
 class BLAST:
 
@@ -35,10 +48,10 @@ class BLAST:
             o.write(sequence)
 
 
-    """
-    Returns XML
-    """
     def runBLASTP(self, sequence_file, results_file, format=5):
+        """
+        Returns XML
+        """
 
         try:
             with open(results_file, 'r') as f:
@@ -62,10 +75,10 @@ class BLAST:
         #     o.write(output)
         # return output
 
-    """
-    Returns XML
-    """
     def runDeltaBLAST(self, sequence_file, results_file, format=5):
+        """
+        Returns XML
+        """
 
         try:
             with open(results_file, 'r') as f:
@@ -92,11 +105,10 @@ class BLAST:
 
 
 
-    """
-    Returns Q-templates dictionary
-    """
     def parseHits(self, xml, identity_filter = lambda x: 25 <= x < 100):
-
+        """
+        Returns Q-templates dictionary
+        """
         root = ET.fromstring(xml)
         # print self.root
         matches = defaultdict(list)
@@ -126,12 +138,10 @@ class BLAST:
                     matches[query_id].append((hit_id, hsp_identity, hsp_gaps, hsp_qseq, hsp_hseq))
         return matches
 
-
-    """
-    Returns Q-templates dictionary
-    """
     def iterParseHits(self, xml):
-
+        """
+        Returns Q-templates dictionary
+        """
         # root = ET.fromstring(xml)
         # print self.root
         matches = defaultdict(list)
@@ -140,7 +150,7 @@ class BLAST:
         context = iter(context)
         event, root = context.next()
 
-        BLASTHits = namedtuple('BLASTHits', 'hit, score, bit_score, evalue, identity, positive, gaps, align_len, qseq, hseq')
+        BLASTHits = namedtuple('BLASTHits', 'hit, score, bit_score, evalue, identical, positive, gaps, align_len, qseq, hseq, query_from, query_to, hit_from, hit_to')
 
         cnt = 0
         for event, elem in context:
@@ -161,7 +171,7 @@ class BLAST:
                     # print hit_id
                     hit_len = int(hit.find("Hit_len").text)
                     for hsp in hit.findall("Hit_hsps/Hsp"):
-                        hsp_identity = int(hsp.find("Hsp_identity").text)
+                        hsp_identical = int(hsp.find("Hsp_identity").text)
                         hsp_positive = int(hsp.find("Hsp_positive").text)
                         hsp_score = int(hsp.find("Hsp_score").text)
                         hsp_bit_score = float(hsp.find("Hsp_bit-score").text)
@@ -175,7 +185,17 @@ class BLAST:
                         hsp_qseq = hsp.find("Hsp_qseq").text
                         hsp_hseq = hsp.find("Hsp_hseq").text
 
-                        match = BLASTHits._make((hit_id, hsp_score, hsp_bit_score, hsp_evalue, hsp_identity, hsp_positive, hsp_gaps, hsp_align_len, hsp_qseq, hsp_hseq))
+                        # coordinates in sequence:
+                        hsp_query_from = hsp.find("Hsp_query-from").text
+                        hsp_query_to = hsp.find("Hsp_query-to").text
+
+                        hsp_hit_from = hsp.find("Hsp_hit-from").text
+                        hsp_hit_to = hsp.find("Hsp_hit-to").text
+
+                        match = BLASTHits._make((
+                            hit_id, hsp_score, hsp_bit_score, hsp_evalue,
+                            hsp_identical, hsp_positive, hsp_gaps, hsp_align_len, hsp_qseq, hsp_hseq,
+                            hsp_query_from, hsp_query_to, hsp_hit_from, hsp_hit_to))
                         matches[query_id].append(match)
 
                 elem.clear()

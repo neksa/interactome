@@ -22,13 +22,17 @@ class Complexes:
                     "THR": "T", "LYS": "K", "SER": "S", "GLN": "Q", "MET": "M", "TRP": "W"}
         self.aa = self.aa_dict.keys()
 
-    """
-    returns dictionary
-    query: template/pdb
-    """
-    def templatesComplexes(self, pdb_chain_list, hits):
-        templates = defaultdict(dict)
+    def templatesComplexes(self, templates, hits):
+        """
+        returns dictionary
+        query: template/pdb
+        """
+        templates_complexes = defaultdict(dict)
         for pdb, (chain1, chain2) in pdb_chain_list.iteritems():
+
+            chain1_real = chain1.replace('_', '')
+            chain2_real = chain2.replace('_', '')
+
             # print pdb, chain1, chain2
             templates[pdb][(chain1, chain2)] = set()
 
@@ -48,6 +52,85 @@ class Complexes:
                     if template_pdb1 != template_pdb2: continue
                     templates[pdb][(chain1, chain2)].add((template_pdb1, template_chain1, template_chain2))
                     # print template_pdb1
+        return templates_complexes
+
+
+    def templatesWithHits(self, templates, hits):
+        """
+        This is an inverse matching: queries are assigned to templates via BLAST hits.
+
+        Take a template complex. It has two chais (interacting partners).
+        For each partner find hits.
+
+        Normal procedure:
+            Report hits
+        Benchmark procedure (when starting from known structures):
+            Report only hits which have the same PDB identifier
+
+        """
+        matching_templates = defaultdict(set)
+
+        # print hits.keys()
+        for pdb, (chain1, chain2, site1, site2) in templates.iteritems():
+
+            pdb = pdb.upper()
+            # template chains and sites
+            # _real chains do not contain
+            idx = chain1.find('_')
+            chain1_real = chain1[:idx] if idx != -1 else chain1
+
+            idx = chain2.find('_')
+            chain2_real = chain2[:idx] if idx != -1 else chain2
+
+            # print "T:", pdb, chain1_real, chain2_real
+
+            # matching_templates[(pdb, chain1_real, chain2_real)] = set()
+
+            # hits[hit] = query
+            for query1 in hits[pdb+chain1_real]:
+                q1_id, ident1, (q1_from, q1_to), (h1_from, h1_to) = query1
+                # in benchmark the queries are PDB structures
+                q1_pdb = q1_id[0:4]
+                q1_chain = q1_id[4:5]
+                # print "Q:", q1_pdb, q1_chain
+
+                for query2 in hits[pdb+chain2_real]:
+                    q2_id, ident2, (q2_from, q2_to), (h2_from, h2_to) = query2
+                    # in benchmark the hits are PDB structures
+                    q2_pdb = q2_id[0:4]
+                    q2_chain = q2_id[4:5]
+                    # print "Q:", q2_pdb, q2_chain
+
+                    # in Benchmark we are interested in queries that are coming from the same structure
+                    if q1_pdb != q2_pdb: continue
+
+                    str_site1 = ";".join(["{},{},{}".format(k[0], k[1], v) for k, v in site1.iteritems()])
+                    str_site2 = ";".join(["{},{},{}".format(k[0], k[1], v) for k, v in site2.iteritems()])
+
+                    params = ((ident1, q1_from, q1_to, h1_from, h2_to, str_site1), (ident2, q2_from, q2_to, h2_from, h2_to, str_site2))
+                    matching_templates[(pdb, chain1_real, chain2_real)].add((q1_pdb, q1_chain, q2_chain, params))
+                    # print "Added template hit"
+        # print matching_templates
+        return matching_templates
+
+
+    def loadTemplates(self, fname):
+        templates = dict()
+        with open(fname) as f:
+            for line in f:
+                pdb, chain1, chain2, str_site1, str_site2 = line.strip().split("\t")
+
+                site1 = {}
+                for s in str_site1.split(';'):
+                    resn, resi, v = s.split(',')
+                    site1[(resn, resi)] = v
+
+                site2 = {}
+                for s in str_site2.split(';'):
+                    resn, resi, v = s.split(',')
+                    site2[(resn, resi)] = v
+
+                templates[pdb] = [chain1, chain2, site1, site2]
         return templates
 
 
@@ -129,3 +212,6 @@ class Complexes:
         except Exception, e:
             os.remove(fname)
             raise e
+
+
+

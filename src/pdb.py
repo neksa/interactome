@@ -3,22 +3,18 @@ PDB module
 PDBSearchResults processing module
 """
 
-import xml.etree.ElementTree as ET
-from collections import defaultdict, namedtuple
-from textwrap import TextWrapper
-
 import httplib
-import xml.etree.ElementTree as ET
-import pickle
-import zlib
 import csv
-from itertools import islice
-
-from cStringIO import StringIO
-
 import glob
-import subprocess
+from itertools import islice
+from textwrap import TextWrapper
+from collections import defaultdict, namedtuple
 
+# from cStringIO import StringIO
+# import subprocess
+# import xml.etree.ElementTree as ET
+# import pickle
+# import zlib
 
 class PDB:
     def fetchRemoteStructure(self, pdb):
