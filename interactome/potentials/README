@@ -1,0 +1,14 @@
+cd scoring
+
+find results/ -name *.int |xargs cat| grep -v "^pdb">all.int
+
+
+non_redundant_filter.py => NR_pdb_chains_40.tab
+process_pdb.py => results/XX/NXXN.pdb  NXXN.int
+process_interactions.py <= *.int  => aa-contacts.tab aa-distances.tab binary_interactions.tab
+
+process_interfaces.py <= *.int => interfaces.tab
+                        <= interfaces.tab, *.pdb => interface_residues.tab
+                        <= interface_residues.tab => interface_residues_and_more.tab
+                        <= interface_residues_and_more.tab => distance_stats.tab
+

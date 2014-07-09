@@ -1,0 +1,42 @@
+
+Uniprot all human proteins
+
+reviewed from complete proteome
+
+additionaly they have some isoforms
+
+http://www.uniprot.org/uniprot/?query=organism%3a9606+AND+keyword%3a%22Complete+proteome+%5bKW-0181%5d%22+reviewed%3ayes&format=*&compress=yes
+
+---------
+
+
+rsync -avz -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" --progress /root/bigfile.txt username@198.211.117.129:/
+rsync -avz -e "ssh" --partial --progress agoncear@hexagon.ii.uib.no:/home/cbu/agoncear/work/NAMD/output .
+
+---------
+
+
+
+BLAST at RCSB with a chain as ID, returns XML
+
+http://www.rcsb.org/pdb/rest/getBlastPDB1?structureId=4HHB&chainId=B&eCutOff=10.0&matrix=BLOSUM62&outputFormat=XML
+
+
+
+-----------
+BioGrid:
+
+Your New Access Key is: f290b149fa48751c5e2dcb97e4d4531e
+
+This key is case sensitive, so please copy it as is and use it whenever you access the site. The following are a few examples of how to use your key. For more detailed information on how to use our webservice, visit our wiki.
+Examples
+
+http://webservice.thebiogrid.org/interactions/?pubmedList=18316726|17662948&accessKey=f290b149fa48751c5e2dcb97e4d4531e
+
+http://webservice.thebiogrid.org/version/?accessKey=f290b149fa48751c5e2dcb97e4d4531e
+
+http://webservice.thebiogrid.org/interactions/?geneList=31623&searchbiogridids=true&includeInteractors=true&accessKey=f290b149fa48751c5e2dcb97e4d4531e
+
+http://webservice.thebiogrid.org/interaction/102009/?format=json&accessKey=f290b149fa48751c5e2dcb97e4d4531e
+
+http://webservice.thebiogrid.org/interactions/?additionalIdentifierTypes=ENTREZ_GENE&evidenceList=Affinity Capture-MS&includeEvidence=true&geneList=851076|853506&accessKey=f290b149fa48751c5e2dcb97e4d4531e

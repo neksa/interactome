@@ -1,0 +1,37 @@
+
+Example of one chain - many genes:
+
+3AZM structure, chain B:
+Protein P68431 (H31_HUMAN)
+Recommended name:
+Histone H3.1
+Alternative name(s):
+Histone H3/a
+Histone H3/b
+Histone H3/c
+Histone H3/d
+Histone H3/f
+Histone H3/h
+Histone H3/i
+Histone H3/j
+Histone H3/k
+Histone H3/l
+
+
+3AZMB 3AZMH set([121504, 8294, 8359, 8360, 8361, 8362, 8363, 8364, 8365, 8366, 8367, 8368, 8370, 554313]) set([8970]) Hetero-oligomer
+
+
+-----------
+Example of different naming in chains:
+3NVK:
+
+
+3NVKB 3NVKF set([]) set([1467889]) Unknown
+
+There is no chain B in CIF!
+ABCDEF
+
+_atom_site.label_asym_id 
+B
+_atom_site.auth_asym_id 
+F

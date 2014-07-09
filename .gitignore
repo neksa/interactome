@@ -1,11 +1,7 @@
 backup
 pdbtools
-scoring/PDB
-scoring/plots
 *.png
-scoring/results
 Workflow.bak
+Workflow
 *.xml
 *.fasta
-SKEMPI
-scoring/data

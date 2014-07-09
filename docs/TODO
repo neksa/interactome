@@ -1,0 +1,52 @@
+TODO:
+ + Fix NMR structure parsing:
+  + get the list of NMR structures, recalculate them (analysis of interactions)
+  + recollect all templates in one file
+
++ Make template modelling parallel
++ fix the two-char protein labels PDB|A|B
++ recalculate all query-template matches
+
++ analyze the query-template matches
++ plot charts for homo-oligomeric templates and hetero-oligomeric templates
++ write a report
+=================================
+
+ + Fix chain names in BLAST results
+ + Remove 20% identity BLAST threshold
+    + histogram
+       + 15%, E<0.001, len > 25 aar
+ - Refactor the code, so that it's in one place
+ - Commit changes to repository
+ + Run recalculate all query-template matches with the fixed BLAST report 
+
+=================================
+
+- choose the best templates for all query pairs (according to some binding site score)
+- convert ids to genes
+- plot interactome graph between genes
+- write a supplementary website with the alignments and structural models of interfaces
+!! update the report
+
+- calculate compatibility scores for all the interfaces
+- calculate the distributions of compatibility scores for the templates
+- analyze compatibility scores in conjunction to other scores for sides A and B
+!! update the report
+
+- prefilter the results with Stephanie's co-expression data
+!! update the report
+
+- analyze the results in comparison to Marc Vidal interactome
+* send results to Peter Uetz
+
+- continue working on interactome project, redefine deliverables
+- switch to mutations project
+- work on orientation-dependent potential, benchmarking
+
+
+
+=================================
++ Add repository for AlloDB - Enrico
++ Copy codes to Enrico
+- Add repository for SPACER - Andrea
+- Problems with accessing Andrea's machine
