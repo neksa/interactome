@@ -2,20 +2,13 @@
 """
 import xml.etree.ElementTree as ET
 from collections import defaultdict, namedtuple
-from textwrap import TextWrapper
-
-import httplib
-import csv
 from itertools import islice
-from cStringIO import StringIO
 
-import glob
 import subprocess
 
-BLASTReport = namedtuple('BLASTReport',
-    'query, hit, score, bit_score, evalue, identical, positive, gaps, align_len, q_from, q_to, h_from, h_to, qseq, hseq, identity')
-
+BLASTReport = namedtuple('BLASTReport', 'query, hit, score, bit_score, evalue, identical, positive, gaps, align_len, q_from, q_to, h_from, h_to, qseq, hseq, identity')
 BLASTHits = namedtuple('BLASTHits', 'hit, score, bit_score, evalue, identical, positive, gaps, align_len, qseq, hseq, query_from, query_to, hit_from, hit_to')
+
 
 class BLAST:
 
@@ -41,8 +34,10 @@ class BLAST:
             with open(fname, 'r') as f:
                 for line in f:
                     line = line.strip()
-                    if line.startswith("structure"): continue
-                    if line == "": continue
+                    if line.startswith("structure"):
+                        continue
+                    if line == "":
+                        continue
                     if line.endswith("*"):
                         line = line[:-1]
                     if line.startswith(">"):
@@ -51,7 +46,6 @@ class BLAST:
 
         with open(query_filename, 'w') as o:
             o.write(sequence)
-
 
     def runBLASTP(self, sequence_file, results_file, format=5):
         """
@@ -69,10 +63,10 @@ class BLAST:
             "/usr/local/ncbi/blast/bin/blastp",
             "-out", results_file,
             "-db", "pdb",
-            "-query", sequence_file, 
+            "-query", sequence_file,
             "-outfmt", str(format),
             "-evalue", "1",
-            "-remote"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+            "-remote"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         output, err = proc.communicate()[0]
         print err
@@ -96,11 +90,11 @@ class BLAST:
             "/usr/local/bin/deltablast",
             "-out", results_file,
             "-db", "pdb",
-            "-query", sequence_file, 
+            "-query", sequence_file,
             "-outfmt", str(format),
             "-remote",
             "-inclusion_ethresh", "0.05",
-            "-domain_inclusion_ethresh", "0.05"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+            "-domain_inclusion_ethresh", "0.05"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         output, err = proc.communicate()[0]
         print err
@@ -108,9 +102,7 @@ class BLAST:
         #     o.write(output)
         # return output
 
-
-
-    def parseHits(self, xml): # identity_filter = lambda x: 25 <= x < 100):
+    def parseHits(self, xml):  # identity_filter = lambda x: 25 <= x < 100):
         """
         Returns Q-templates dictionary
         """
@@ -120,7 +112,7 @@ class BLAST:
 
         for iteration in root.findall("./BlastOutput_iterations/Iteration"):
             query_id = iteration.find("Iteration_query-def").text
-            
+
             # ATTENTION: change this in case of new BLAST query types other than swissprot or PDB
             if query_id.startswith("sp|"):
                 query_id = query_id.split("|", 2)[1]
@@ -132,14 +124,14 @@ class BLAST:
                 # print hit
                 hit_id = hit.find("Hit_accession").text
                 # print hit_id
-                hit_len = int(hit.find("Hit_len").text)
+                # hit_len = int(hit.find("Hit_len").text)
                 for hsp in hit.findall("Hit_hsps/Hsp"):
                     hsp_identity = int(hsp.find("Hsp_identity").text)
-                    
+
                     # if not identity_filter(hsp_identity): continue
 
                     hsp_gaps = int(hsp.find("Hsp_gaps").text)
-                    hsp_align_len = int(hsp.find("Hsp_align-len").text)
+                    # hsp_align_len = int(hsp.find("Hsp_align-len").text)
 
                     # alignment:
                     hsp_qseq = hsp.find("Hsp_qseq").text
@@ -172,7 +164,7 @@ class BLAST:
                 if query_id.startswith("sp|"):
                     query_id = query_id.split("|", 2)[1]
                 # query_id = query_id[0:5] # 2HLEA from 2HLEA_ATOM
-                
+
                 cnt += 1
                 print cnt, query_id
                 # if cnt > 15: break
@@ -181,14 +173,14 @@ class BLAST:
                     # print hit
                     hit_id = hit.find("Hit_accession").text
                     # print hit_id
-                    hit_len = int(hit.find("Hit_len").text)
+                    # hit_len = int(hit.find("Hit_len").text)
                     for hsp in hit.findall("Hit_hsps/Hsp"):
                         hsp_identical = int(hsp.find("Hsp_identity").text)
                         hsp_positive = int(hsp.find("Hsp_positive").text)
                         hsp_score = int(hsp.find("Hsp_score").text)
                         hsp_bit_score = float(hsp.find("Hsp_bit-score").text)
                         hsp_evalue = float(hsp.find("Hsp_evalue").text)
-                        
+
                         # if not identity_filter(hsp_identity): continue
                         hsp_gaps = int(hsp.find("Hsp_gaps").text)
                         hsp_align_len = int(hsp.find("Hsp_align-len").text)
@@ -211,14 +203,11 @@ class BLAST:
                         matches[query_id].append(match)
 
                 elem.clear()
-
         # for event, elem in iterparse(xml):
         #     if elem.tag == "Iteration":
         #         # .... process
         #         elem.clear()
-
         return matches
-
 
     def makeReport(self, BLAST_xml, blast_report):
         with open(BLAST_xml, 'r') as f, open(blast_report, 'w') as o:
@@ -231,58 +220,61 @@ class BLAST:
                         h.identical, h.positive, h.gaps, h.align_len,
                         h.query_from, h.query_to, h.hit_from, h.hit_to, h.qseq, h.hseq))
 
-
     def readReport(self, blast_report):
         """
             Parse format saved by makeReport
             convert values to float and int from string, calculate sequence identity in %
 
             Returns two dictionaries indexed by different keys: by hit and by query
+
+            Reports for the same query are joined in one list. They have to be overlapped in a common alignment.
         """
-        
-        by_hit = defaultdict(list)
+
+        by_hit = defaultdict(lambda: defaultdict(list))
         # by_query = defaultdict(list)
 
         c = 0
         with open(blast_report) as f:
-            for line in islice(f, 1, None): #None
+            for line in islice(f, 1, None):  # None
                 fields = list(line.strip().split("\t"))
                 c += 1
-                if c % 100000 == 0: print '.',
+                if c % 100000 == 0:
+                    print '.',
                 # if c % 1000000 == 0: break
                 # pdb, pdb_chain = fields[1].split("|")
 
                 # fields[1] = fields[1].replace('|', '') # remove bar from hit name (separating PDB ID and chain)
-                fields[2:5] = map(float, fields[2:5]) # score, bit_score, evalue
-                
+                fields[2:5] = map(float, fields[2:5])  # score, bit_score, evalue
+
                 # print fields[5:13]
-                fields[5:13] = map(int, fields[5:13]) # identical, positive, gaps, align_len, q_from, q_to, h_from, h_to
+                fields[5:13] = map(int, fields[5:13])  # identical, positive, gaps, align_len, q_from, q_to, h_from, h_to
                 # print fields[5:13]
 
-                identity = int(round(float(fields[5])*100.0 / float(fields[8]), 0)) # percent identity = identical / align_len
+                identity = int(round(float(fields[5])*100.0 / float(fields[8]), 0))  # percent identity = identical / align_len
                 fields.append(identity)
+                report = BLASTReport._make(fields)
 
-                if not (25 <= identity): continue
-                # if not (20 <= identity < 25): continue
-                # if not (15 <= identity < 20): continue
-                if fields[8] < 25.0: continue # report.align_len
-                if fields[4] > 0.01: continue # report.evalue 
+                if not (15 <= identity):
+                    continue
+                if fields[8] < 25:
+                    continue  # report.align_len
+                if fields[4] > 0.001:
+                    continue  # report.evalue
 
                 # print report.identity
                 # by_hit[report.hit].append(report)
                 # by_query[report.query].append(report)
-                # by_hit[fields[1]].append(tuple(fields)) # report.hit
-                report = BLASTReport._make(fields)
-                by_hit[report.hit].append(report) # report.hit
+                # by_hit[fields[1]][fields[0]].append(tuple(fields)) # report.hit
+                by_hit[report.hit][report.query].append(report)  # report.hit
                 # by_query[report.query].append(fields)
 
         summary = 0
+        sort_by_positive = lambda x: x.positive
         for k, v in by_hit.iteritems():
-            for i in v:
-                summary += 1
-        print "BLAST results: loaded", summary, "hits"
+            for q in v.iterkeys():
+                by_hit[k][q].sort(reverse=True, key=sort_by_positive)
+                summary += len(by_hit[k][q])
 
-        return by_hit#, by_query
+        print "BLAST results: loaded", summary, "records"
 
-
-
+        return dict(by_hit)  # , by_query

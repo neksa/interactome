@@ -1,0 +1,18 @@
+WORKFLOWS:
+
+
+* workflow.py 
+    Steps:
+        1. Run BLAST (BLAST-results)
+        2. convert BLAST results, make a report (BLAST-results)
+        3. collect templates -> ()
+           load templates 
+           read BLAST report
+           
+           BLAST results: loaded 3801383 records
+           min 25 hit length
+           min 15% identity hit
+           min 3 aligned residues on the binding side
+           min 0.7 binding site coverage
+
+

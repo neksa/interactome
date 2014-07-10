@@ -6,83 +6,24 @@ Benchmarking the quality of modeling by (re)modeling the human dimers
 """
 
 import signal
-import time
-import math
+# import time
+# import math
 
-from multiprocessing import Pool, Value, Manager
+from multiprocessing import Pool, Manager  # , Value
 
-from itertools import islice
-from collections import defaultdict
-
-from pdb import PDB, PDBSearchResults, SKEMPI, SIFTS
-from modellerwrapper import ModellerWrapper
-from blast import BLAST, BLASTReport
-from complexes import Complexes, SiteResidue
-
-#############################################################
-#############################################################
-
-def skempi_benchmark_workflow():
-    """
-    1. Take dimers from SKEMPI
-    2. Download PDB files
-    3. Extract sequences from PDB files 
-    4. And use them as queries in BLASTp
-    5. In BLAST hits find templates that are protein complexes
-    6. Format hetero-dimer alignments according to MODELLER rules
-    7. Run MODELLER with the alignments to produce models of complexes
-
-    Protein complex comparative modeling workflow. From query sequences to alignments and models.
-
-    Conventions:
-    PDB code: 4 chars capitalized
-        PPPP
-    chains: letters capitalized, follor PDB code. Up to 2 letters
-        AB
-
-    dimer is represented by pdb code and two chain letters:
-        PPPPAB
-
-    Alignments:
-        Modeller-compatible PIR format
-    """
-
-    # Step 1
-    skempi = SKEMPI()
-    dimers = skempi.getDimers() 
-    # print dimers
-
-    # Step 2
-    pdb = PDB()
-    pdb.getStructureFiles(dimers.keys())
-
-    # Step 3
-    pdb.extractSEQRES(dimers.keys())
-
-    # Step 4 
-    query_fasta = "../Workflow/BLAST-results/query_sequence.fasta"
-    BLAST_xml = "../Workflow/BLAST-results/BLAST_hits.xml"
-    
-    blast = BLAST()
-    blast.pirToQuery(dimers, query_fasta)
-    xml = blast.runBLASTP(query_fasta, BLAST_xml)
-    hits = blast.parseHits(xml)
-
-    # Steps 5,6
-    c = Complexes()
-    tpl_complexes = c.templatesComplexes(dimers, hits)
-    template_pdb_codes = c.getTemplatePDBCodes(tpl_complexes)
-    print template_pdb_codes
-    pdb.getStructureFiles(template_pdb_codes)
-    template_seqres = pdb.extractSEQRES(template_pdb_codes)
-
-    c.alignments(tpl_complexes, query_fasta)
-    # Optional Step 7.  verify model building
-    c.models(tpl_complexes)
+# from itertools import islice
+# from collections import defaultdict
+# from pdb import PDB, PDBSearchResults, SKEMPI  # , SIFTS
+# from modellerwrapper import ModellerWrapper
+from interactome.sequences.blast import BLAST  # , BLASTReport
+from interactome.structures.complexes import Complexes  # , SiteResidue
 
 
 #############################################################
-def human_benchmark_workflow_step1():
+def get_root():
+    return "/Users/agoncear/projects/Interactome/Workflow"
+
+def step1():
     """
     Step 1:
         1.1. Preparing a benchmark with Human dimers, <2.5A resolution, with two chains in bioassembly, each chain at least 50 residues long
@@ -92,10 +33,10 @@ def human_benchmark_workflow_step1():
         1.2. Extract sequences from the search results and format them as FASTA
         1.3. Run Delta-BLAST against PDB database with FASTA file as a query
     """
-    search_results = "../Workflow/Searches/tabularResults.csv"
-    query_fasta = "../Workflow/BLAST-results/query_sequence.fasta"
-    # BLAST_xml = "../Workflow/BLAST-results/localDeltaBLAST_hits.xml"
-    BLAST_xml = "../Workflow/BLAST-results/HumanDeltaBLAST_hits.xml"
+    search_results = get_root() + "/Searches/tabularResults.csv"
+    query_fasta = get_root() + "/BLAST-results/query_sequence.fasta"
+    # BLAST_xml = get_root() + "/BLAST-results/localDeltaBLAST_hits.xml"
+    BLAST_xml = get_root() + "/BLAST-results/HumanDeltaBLAST_hits.xml"
 
     print "Step 1"
 
@@ -135,21 +76,21 @@ def human_benchmark_workflow_step1():
     except IOError:
         print "\tError: BLAST results expected but not found", BLAST_xml
         return
-    
+
     print "Step 1 DONE"
     # hits = blast.parseHits(xml)
     # print hits
 
 #############################################################
-def human_benchmark_workflow_step2():
+def step2():
     """
     Step 2.
         Convert BLAST results from XML to a tab file with required fields
     """
     # BLAST_xml = "../Workflow/BLAST-results/localDeltaBLAST_hits.xml"
-    BLAST_xml = "../Workflow/BLAST-results/HumanDeltaBLAST_hits.xml"
-    blast_report = "human_deltablast_report.tab"
-    
+    BLAST_xml = get_root() + "/BLAST-results/HumanDeltaBLAST_hits.xml"
+    blast_report = get_root() + "/BLAST-results/human_deltablast_report2.tab"
+
     print "Step 2"
 
     try:
@@ -158,7 +99,7 @@ def human_benchmark_workflow_step2():
         print "\tError: BLAST results not found", BLAST_xml
         return
 
-    try: 
+    try:
         with open(blast_report): pass
         # print "\tInfo: BLAST report found", blast_report
     except IOError:
@@ -170,29 +111,20 @@ def human_benchmark_workflow_step2():
 
 #############################################################
 
-def human_benchmark_workflow_step3():
+def step3():
     """
     Step 3.
         Protein complex comparative modeling workflow. From query sequences to alignments and models.
-
-        Conventions:
-        PDB code: 4 chars capitalized
-            PPPP
-        chains: letters capitalized, follor PDB code. Up to 2 letters
-            AB
-
-        dimer is represented by pdb code and two chain letters:
-            PPPPAB
-
-        Alignments:
-            Modeller-compatible PIR format
     """
     # blast_report = "deltablast_report.tab"
-    blast_report = "human_deltablast_report2.tab"
-    pdb_templates = "pdb_templates_5A.tab"
-    matches_fname = "matches_human_25.tab"
-    pdb_interfaces_path = "../Workflow/Interfaces/"
+    blast_report = get_root() + "/BLAST-results/human_deltablast_report2.tab"
+    pdb_templates = get_root() + "/Structures/pdb_templates_5A.tab"
+    matches_fname = get_root() + "/Alignments/matches_human_25.tab"
+    pdb_interfaces_path = get_root() + "/Interfaces/"
     # mapping_fname = "../../../data/EBI/SIFTS/pdb_chain_uniprot.tsv"
+
+    # parallel = True
+    parallel = False
 
     print "Step 3"
 
@@ -216,84 +148,93 @@ def human_benchmark_workflow_step3():
         print "\tError: No PDB templates summary found", pdb_templates
         return
 
-
     try:
         with open(matches_fname): pass
     except IOError:
 
-        manager = Manager()
-        data = manager.dict()
+        data = dict()
+        if parallel:
+            manager = Manager()
+            data = manager.dict()
 
         print "Loading templates..."
-        templates = complexes.loadTemplates(pdb_templates)#, mapping)
+        templates = complexes.loadTemplates(pdb_templates)
 
         print "Loading BLAST report..."
         blast = BLAST()
-        blast_report = "human_deltablast_report2.tab"
-        data = blast.readReport(blast_report)
+        data[0] = blast.readReport(blast_report)
 
         # print "DEMO"
         # print data["2E5H|A"]
 
-        pool = Pool(8, init_worker, initargs=(data,))
-        """
-        pool.imap_unordered(extract_contacts, ifilter(isNMR, mmcif.listAll()))
-        """
-        gen_results = pool.imap_unordered(func_runner, templates) # 5000
+        pool = None
+        gen_results = None
+
+        if parallel:
+            pool = Pool(8, init_worker, initargs=(data,))
+            gen_results = pool.imap_unordered(func_runner, templates)  # 5000
+            """
+            pool.imap_unordered(extract_contacts, ifilter(isNMR, mmcif.listAll()))
+            """
+        else:
+            init_worker(data)
+            gen_results = (func_runner(template) for template in templates)
 
         try:
             # while(True):
             #     print "Watchdog... every 60 seconds (Ctrl-C to interrupt)"
             #     time.sleep(60)
-
             c = 0
             print "Writing results to", matches_fname
             with open(matches_fname, 'w') as o:
-                o.write("query_A\tquery_B\ttemplate\tid_A\tq_A\tt_A\tsite_A\tid_B\tq_B\tt_B\tsite_B\n")
+                o.write("query_A\tquery_B\ttemplate\tid_A\taln_len_A\tsite_A\tid_B\taln_len_B\tsite_B\n")
 
-                for r in gen_results:
+                for result in gen_results:
+                    if c % 1000 == 0: print c
+                    c += 1
 
-                    if r is None: continue
-                    for result in r:
-                        # print result
-                        c += 1
-                        # print c
-                        if c % 1000 == 0: print c
-                        
-                        if result is None: continue
+                    tpl, queries = result
+                    tpl_pdb, tpl_A, tpl_B = tpl
+                    for query_A, query_B, params in queries:
+                        (A, site_A_str), (B, site_B_str) = params
+                        identity_A = int(round(sum([x.identity for x in A]) / float(len(A))))
+                        identity_B = int(round(sum([x.identity for x in B]) / float(len(B))))
 
-                        tpl, queries = result
-                        tpl_pdb, tpl_A, tpl_B = tpl
-                        # for q_pdb, q_A, q_B, params in queries:
-                        for query_A, query_B, params in queries:
-                            # identity_A, qfrom_A, qto_A, hfrom_A, hto_A, site_A = params[0]
-                            # identity_B, qfrom_B, qto_B, hfrom_B, hto_B, site_B = params[1]
-                            (A, site_A), (B, site_B) = params
+                        aln_len_A = max(
+                            sum([x.q_to - x.q_from + 1 for x in A]),
+                            sum([x.h_to - x.h_from + 1 for x in A]))
+                        aln_len_B = max(
+                            sum([x.q_to - x.q_from + 1 for x in B]),
+                            sum([x.h_to - x.h_from + 1 for x in B]))
 
-                            o.write("{}\t{}\t{}\t{}\t{}-{}\t{}-{}\t{}\t{}\t{}-{}\t{}-{}\t{}\n".format(
-                                query_A,
-                                query_B,
-                                tpl_pdb + '|' + tpl_A + '|' + tpl_B,
-                                A.identity, A.q_from, A.q_to, A.h_from, A.h_to, site_A,
-                                B.identity, B.q_from, B.q_to, B.h_from, B.h_to, site_B))
+                        o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                            query_A,
+                            query_B,
+                            tpl_pdb + '|' + tpl_A + '|' + tpl_B,
+                            identity_A, aln_len_A, site_A_str,
+                            identity_B, aln_len_B, site_B_str))
 
         except KeyboardInterrupt:
             print "Caught KeyboardInterrupt, terminating workers"
-            pool.terminate()
-            pool.join()
+            if pool is not None:
+                pool.terminate()
+                pool.join()
+                pool = None
+            else:
+                raise
 
         # pool.close()
-        pool.terminate()
-        pool.join()
-        
+        if pool is not None:
+            pool.close()
+            pool.join()
         # sifts = SIFTS()
         # mapping = sifts.getPDBMapping(mapping_fname)
         # print "Info: Mapping loaded"
-
     print "Step 3 DONE"
 
+
 #############################################################
-def human_benchmark_workflow_step4():
+def step4():
     pass
     print "Step 4"
     print "Step 4 DONE"
@@ -301,34 +242,26 @@ def human_benchmark_workflow_step4():
 
 #############################################################
 def human_benchmark():
-    human_benchmark_workflow_step1()
-    human_benchmark_workflow_step2()
-    human_benchmark_workflow_step3()
-    human_benchmark_workflow_step4()
+    step1()
+    step2()
+    step3()
+    step4()
 
 
 #############################################################
 blast_hits = None
-
-def func_runner(templates):
+def func_runner(template):
     global blast_hits
-
     # print "DEMO runner"
     # print blast_hits["2E5H|A"]
-
     complexes = Complexes()
-
-    gen_matching_templates = complexes.templatesWithHits(templates, blast_hits, benchmark = False)
-    results = [x for x in gen_matching_templates]
-    return results
-    # for x in gen_matching_templates: yield x
+    return complexes.templatesWithHits(template, blast_hits, benchmark=False)
 
 
 def init_worker(data):
     global blast_hits
     print "Worker initializing..."
-    blast_hits = data
-
+    blast_hits = data[0]
     # print "DEMO init"
     # print blast_hits["2E5H|A"]
     # load processed BLAST hits
