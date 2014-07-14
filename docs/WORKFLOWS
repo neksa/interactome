@@ -1,6 +1,5 @@
 WORKFLOWS:
 
-
 * workflow.py 
     Steps:
         1. Run BLAST (BLAST-results)
@@ -14,5 +13,67 @@ WORKFLOWS:
            min 15% identity hit
            min 3 aligned residues on the binding side
            min 0.7 binding site coverage
+
+
+* process matches:
+    - calculate binding site alignment properties (one for each physical chain pair)
+    - calculate compatibility score
+    - plot diagnostics (separately for homo and heterodimers) for:
+        alignment length
+        alignment identity
+        binding site sizes
+        binding site identity
+        binding site BLOSUM sum
+        binding site total number of contacts
+        binding site BLOSUM*number of contacts
+        compatibility score
+        compatibility score vs binding site scores
+
+
++ calculate potential:
+  process interactions in interfaces of selected NR structures
+  calculate basic statistics for pairs of residues on the interface
+  calculate properties of shuffled interfaces
+  calculate score with 1A step from 2A to 15A - save to a file
+
+* use potential to calculate:
+  scores of all templates
+  scores of shuffled templates
+  score * number of contacts
+  scores of matches
+
+* generate file: Uniprot Prot-Prot pair, Gene-Gene pair, best compatibility score
+  calculate Stephanie's scores for the Uniprot-Uniprot pairs #, for the Gene-Gene pairs
+  calculate ROC curve for the TRUE protein interactions in Vidal set
+  prefilter pairs with Stephanie's scores, Calculate ROC curve for it
+  calculate ROC for TRUE interactions in Stephanie's set
+  find the compatibility score threshold T
+
+* Create complete interactome with the score threshold
+  Show in Cytoscape:
+    nodes with flags (inVidalInteractome, inUetzClones, Reactome reactions)
+    edges with data (score_best, numberOfTemplates, inHPAprot, inHPArna, link to site)
+
+* Calculate network properties:
+  degree distribution
+  centrality C
+  path length
+
+* Create website for protein-protein pairs
+  For each pair show different templates and their scores
+  Visualize the alignment
+  Visualize the dimer structure in JSmol, show the substituted amino acids
+
+* Think about converting the compatibility score to p-values relative the scores in reshuffled distribution
+
+* Introduce a new score: SUBST1*contacts + SUBST2*contacts + compatibility
+  Test it 
+
+* Generate Uniprot-Uniprot pairs for human only complexes
+  calculate scores with Stephanie's program
+
+
+
+
 
 
