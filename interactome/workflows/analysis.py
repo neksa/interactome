@@ -1,16 +1,9 @@
 
-import fnmatch
-from itertools import islice, ifilter
 import os
-import errno
-import gzip
-import math
-import string
-
 import signal
 import time
+import sys
 
-from collections import defaultdict
 import multiprocessing as mp
 
 from interactome.structures.mmcif import mmCifFile
@@ -63,29 +56,28 @@ def get_mapping_fname(code):
     return mapping
 
 
-def extract_protein_mapping(params):
-    code, gz_filename = params
-    print "PDB: ", code
-    
-    # print code, chain_protein_mapping
-    fname = get_mapping_fname(code)
+# def extract_protein_mapping(params):
+#     code, gz_filename = params
+#     print "PDB: ", code
+#     # print code, chain_protein_mapping
+#     fname = get_mapping_fname(code)
 
-    # try:
-    #     with open(fname, 'r') as f: pass
-    #     print "skip"
-    #     return
-    # except:
-    #     pass
+#     # try:
+#     #     with open(fname, 'r') as f: pass
+#     #     print "skip"
+#     #     return
+#     # except:
+#     #     pass
 
-    mmcif = mmCifFile(get_pdb_path())
-    mmcif.load(code)
-    chain_protein_mapping = mmcif.getChainProteinMapping()
+#     mmcif = mmCifFile(get_pdb_path())
+#     mmcif.load(code)
+#     chain_protein_mapping = mmcif.getChainProteinMapping()
 
-    with open(fname, 'w') as o:
-        o.write("chain\tchain_author\tuniprot\tbegin\tend\n")
-        for chain, m in chain_protein_mapping.iteritems():
-            o.write("{}\t{}\t{}\t{}\t{}\n".format(chain, m.chain_author, m.uniprot, m.begin, m.end))
-            print "{}\t{}\t{}\t{}\t{}\t{}".format(code, chain, m.chain_author, m.uniprot, m.begin, m.end)
+#     with open(fname, 'w') as o:
+#         o.write("chain\tchain_author\tuniprot\tbegin\tend\n")
+#         for chain, m in chain_protein_mapping.iteritems():
+#             o.write("{}\t{}\t{}\t{}\t{}\n".format(chain, m.chain_author, m.uniprot, m.begin, m.end))
+#             print "{}\t{}\t{}\t{}\t{}\t{}".format(code, chain, m.chain_author, m.uniprot, m.begin, m.end)
 
 
 def init_worker():
@@ -125,4 +117,6 @@ if __name__ == '__main__':
         print "Caught KeyboardInterrupt, terminating workers"
         pool.terminate()
         pool.join()
-    
+        sys.exit(-1)
+    pool.close()
+    pool.join()

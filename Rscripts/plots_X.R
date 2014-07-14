@@ -2,7 +2,7 @@ library(ggplot2)
 library(GGally)
 library(data.table)
 
-d <- fread("matches_human.processed.tab-", header=TRUE)
+d <- fread("/Users/agoncear/projects/Interactome/Workflow/Alignments/matches_human_25_analysis.tab", header=TRUE)
 setkey(d, "complex_type")
 
 # 
@@ -27,7 +27,7 @@ y <- data.table(
 
 
 
-ntempl = fread("ntempl.tab", header=TRUE)
+ntempl = fread("/Users/agoncear/projects/Interactome/Workflow/Alignments/ntempl.tab", header=TRUE)
 
 png("ntempl.png")
 hist(ntempl$ntempl[ntempl$ntempl < 600], main="Number of templates per query", breaks=50)

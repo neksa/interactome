@@ -2,7 +2,7 @@
 from collections import defaultdict
 from itertools import islice
 
-from BLOSUM import read_BLOSUM_matrix
+from interactome.sequences.BLOSUM import read_BLOSUM_matrix
 
 import signal
 import time
@@ -59,7 +59,7 @@ def best(in_fname):
 
 def template_analysis():
     complex_types = {}
-    with open("template_analysis.tab", 'r') as f:
+    with open("/Users/agoncear/projects/Interactome/Workflow/Structures/template_analysis.tab", 'r') as f:
         for line in islice(f, 1, None):
             # template\tpdb\tA\tB\tprot_A\tprot_B\tcomplex_type
             template, pdb, A, B, prot_A, prot_B, complex_type = line.strip().split("\t")
@@ -83,7 +83,8 @@ def calc_properties(line):
     if len(fields) != 11:
         return
 
-    query_A, query_B, template, id_A, q_A, t_B, site_A, id_B, q_B, t_B, site_B = fields
+    # query_A, query_B, template, id_A, q_A, t_B, site_A, id_B, q_B, t_B, site_B = fields
+    query_A, query_B, template, id_A, len_A, site_A, id_B, len_B, site_B = fields
 
     id_A = int(id_A)
     id_B = int(id_B)
@@ -224,7 +225,7 @@ def init_worker():
     global blosum
     global complex_types
     uniprot_gene = protein_genes()
-    blosum = read_BLOSUM_matrix("BLOSUM62")
+    blosum = read_BLOSUM_matrix("/Users/agoncear/projects/Interactome/interactome/sequences/BLOSUM62")
     complex_types = template_analysis()
 
     signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -246,7 +247,7 @@ def main(in_fname, dd):
     gen_results = pool.imap_unordered(calc_properties, lines, 100) # 5000
 
     c = 0
-    with open(dd + "/matches_human.processed.tab-", "w") as o, open(dd + "/ntempl.tab", 'w') as o_ntempl, open(dd + "/bslen.tab", 'w') as o_bslen:
+    with open(dd + "/matches_human_analysis.tab", "w") as o, open(dd + "/ntempl.tab", 'w') as o_ntempl, open(dd + "/bslen.tab", 'w') as o_bslen:
         o_ntempl.write("query\tntempl\n")
         o_bslen.write("tpl\t\complex_type\tbs_len\n")
         o.write("side\tquery_A\tquery_B\ttemplate\tcomplex_type\tidentity\tbs_len\tbs_err\tbs_covered\tbs_aligned\tbs_identical\tbs_contacts\tbs_BLOSUM\tbs_score1\n")
@@ -295,9 +296,9 @@ def main(in_fname, dd):
 if __name__ == '__main__':
     # best("matches_human.tab")
     # main("matches_human.tab", 'all')
-    main("matches_human_25.tab", '25')
-    main("matches_human_20-25.tab", '20-25')
-    main("matches_human_15-20.tab", '15-20')
+    main("/Users/agoncear/projects/Interactome/Workflow/Alignments/matches_human.tab", '/Users/agoncear/projects/Interactome/Workflow/Alignments/')
+    # main("matches_human_20-25.tab", '20-25')
+    # main("matches_human_15-20.tab", '15-20')
     # main("best_matches_human.tab", 'bestp')
 
     
