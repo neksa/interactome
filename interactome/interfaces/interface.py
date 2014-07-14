@@ -100,7 +100,7 @@ class Interface:
                     for atom in atoms[chain]:
                         if (chain, atom.resi) in contacting_residues:
                             o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                                chain, atom.resn_short, atom.resi, atom.atomn, atom.xyz[0], atom.xyz[0], atom.xyz[0]))
+                                chain, atom.resn_short, atom.resi, atom.atomn, atom.xyz[0], atom.xyz[1], atom.xyz[2]))
 
         except:
             try:
