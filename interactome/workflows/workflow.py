@@ -112,6 +112,8 @@ def step2():
 #############################################################
 
 def step3():
+    global blast_hits
+
     """
     Step 3.
         Protein complex comparative modeling workflow. From query sequences to alignments and models.
@@ -119,12 +121,12 @@ def step3():
     # blast_report = "deltablast_report.tab"
     blast_report = get_root() + "/BLAST-results/human_deltablast_report2.tab"
     pdb_templates = get_root() + "/Structures/pdb_templates_5A.tab"
-    matches_fname = get_root() + "/Alignments/matches_human_25.tab"
+    matches_fname = get_root() + "/Alignments/matches_human.tab"
     pdb_interfaces_path = get_root() + "/Interfaces/"
     # mapping_fname = "../../../data/EBI/SIFTS/pdb_chain_uniprot.tsv"
 
-    # parallel = True
-    parallel = False
+    parallel = True
+    # parallel = False
 
     print "Step 3"
 
@@ -152,17 +154,17 @@ def step3():
         with open(matches_fname): pass
     except IOError:
 
-        data = dict()
-        if parallel:
-            manager = Manager()
-            data = manager.dict()
+        # data = dict()
+        # if parallel:
+        #     manager = Manager()
+        #     data = manager.dict()
 
         print "Loading templates..."
         templates = complexes.loadTemplates(pdb_templates)
 
         print "Loading BLAST report..."
         blast = BLAST()
-        data[0] = blast.readReport(blast_report)
+        blast_hits = blast.readReport(blast_report)
 
         # print "DEMO"
         # print data["2E5H|A"]
@@ -171,13 +173,13 @@ def step3():
         gen_results = None
 
         if parallel:
-            pool = Pool(8, init_worker, initargs=(data,))
+            pool = Pool(8, init_worker, 10)
             gen_results = pool.imap_unordered(func_runner, templates)  # 5000
             """
             pool.imap_unordered(extract_contacts, ifilter(isNMR, mmcif.listAll()))
             """
         else:
-            init_worker(data)
+            init_worker()
             gen_results = (func_runner(template) for template in templates)
 
         try:
@@ -258,17 +260,16 @@ def func_runner(template):
     return complexes.templatesWithHits(template, blast_hits, benchmark=False)
 
 
-def init_worker(data):
-    global blast_hits
-    print "Worker initializing..."
-    blast_hits = data[0]
+def init_worker():
+    # print "Worker initializing..."
+    # blast_hits = data[0]
     # print "DEMO init"
     # print blast_hits["2E5H|A"]
     # load processed BLAST hits
     # Allow only hits with > 25% identity, E-value < 0.01, and at least 25 residues long alignments
     # print "Info: Loaded BLAST report with", len(by_query.keys()), "queries and ", len(by_hit.keys()), "hits"
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    print "Worker initialized."
+    # print "Worker initialized."
 
 
 #############################################################
