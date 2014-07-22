@@ -5,41 +5,79 @@ Using PDB, Delta-BLAST, and MODELLER
 Benchmarking the quality of modeling by (re)modeling the human dimers
 """
 
-import signal
+# import signal
 # import time
 # import math
-
-from multiprocessing import Pool, Manager  # , Value
-
+import copy
+import pprint
 from itertools import islice
-from collections import defaultdict
-# from pdb import PDB, PDBSearchResults, SKEMPI  # , SIFTS
-# from modellerwrapper import ModellerWrapper
-from interactome.sequences.blast import BLAST, BLASTReport
+from collections import defaultdict, namedtuple
+
+from interactome.sequences.blast import BLASTReport
 from interactome.structures.complexes import Complexes  # , SiteResidue
+from interactome.sequences.BLOSUM import read_BLOSUM_matrix
 
 
-
-def merge_alignments(fname):
+def align(pdbchain, qseq, hseq, qfrom, hfrom, sites):
     """
-        Parse format saved by makeReport
-        convert values to float and int from string, calculate sequence identity in %
+    according to alignment qseq/hseq what is the substitution of the interface residue int_resn/int_resi
+    is it covered by the alignment at all? if not => '*'
+    is there problem with seqres-template alignment => '@'
+    if the bindig site residue is covered but there is a deletion => '-'
+    if it's covered and there is substitution, what's the residue name? => 'R'
 
-        Returns two dictionaries indexed by different keys: by hit and by query
-
-        Reports for the same query are joined in one list. They have to be overlapped in a common alignment.
+    # get the sequences and align the residues:
+    # i = int(int_resi) - 1
+    # q = coordinate in query, resi, starting from 1
+    # h = coordinate in hit, resi, starting from 1
+    # qa = amino acid in query
+    # ha = amino acid in hit
+    # i = is the common index in qseq and hseq, since they are aligned
     """
+    seqresi = [s.seqresi for s in sites]
+    aln = ['*'] * len(seqresi)  # by default - not covered
+    qresi = [0] * len(seqresi)  # by default - zeros in numbers of aligned residues
+    q = qfrom
+    h = hfrom
+    for i, qa in enumerate(qseq):
+        ha = hseq[i]
+        try:
+            site_index = seqresi.index(h)
+            if ha != '-' and ha != sites[site_index].resn:
+                print "the interface residue in template hit (SEQRES)", pdbchain, h, ha, \
+                      "does not match what's in the structure (ATOMRES):", sites[site_index].seqresi, sites[site_index].resi, sites[site_index].resn
+                aln[site_index] = '@'
+            else:
+                aln[site_index] = qa
+                qresi[site_index] = q
+        except:
+            pass
+        if qa != '-': q += 1
+        if ha != '-': h += 1
+    return zip(aln, qresi)
 
-    by_hit = defaultdict(lambda: defaultdict(list))
-    # by_query = defaultdict(list)
+
+def binding_site_alignments(fname_interfaces, fname_blast, fname_blast_processed):
+    c = Complexes()
+    tpls = defaultdict(list)
+    for tpl in c.loadTemplates(fname_interfaces):
+        (pdb, chain1, chain2), (site1, site2) = tpl
+        site1.sort(key=lambda x: x.seqresi)
+        site2.sort(key=lambda x: x.seqresi)
+        chain1_real = chain1.split("_")[0]
+        chain2_real = chain2.split("_")[0]
+        tpls[pdb.upper() + '|' + chain1_real].append((chain1, site1))
+        tpls[pdb.upper() + '|' + chain2_real].append((chain2, site2))
+    print "Loaded binding sites from templates"
 
     c = 0
-    with open(fname) as f:
+    with open(fname_blast) as f, open(fname_blast_processed, 'w') as o:
+        o.write("query\ttemplate\tidentical\tpositive\taln_len\tsite\n")
         for line in islice(f, 1, None):  # None
             fields = list(line.strip().split("\t"))
             c += 1
-            # if c % 100000 == 0:
-            #     print '.',
+            if c % 1000 == 0:
+                print '.',
             # if c % 1000000 == 0: break
             # pdb, pdb_chain = fields[1].split("|")
 
@@ -61,21 +99,169 @@ def merge_alignments(fname):
             if fields[4] > 0.001:
                 continue  # report.evalue
 
-            # print report.identity
-            # by_hit[report.hit].append(report)
-            # by_query[report.query].append(report)
-            # by_hit[fields[1]][fields[0]].append(tuple(fields)) # report.hit
-            if len(by_hit[report.hit][report.query]) > 0:
-                # print by_hit[report.hit][report.query]
-                # print "NEW:"
-                # print report
-                print report.query, report.q_from
-                print report.qseq
-                # ALIGNMENT
+            sites = tpls[report.hit]
+            if len(sites) == 0:
+                continue
 
-            by_hit[report.hit][report.query].append(report)  # report.hit
-            # by_query[report.query].append(fields)
+            for chain, site in sites:
+                alignment = align(report.hit, report.qseq, report.hseq, report.q_from, report.h_from, site)
+                aligned_bs = []
+                overlap = 0
+                for i, (aln, resi) in enumerate(alignment):
+                    if aln != '*' and aln != '@':
+                        overlap += 1
+                    s = site[i]
+                    aligned_bs.append("{},{},{},{},{}".format(s.resn, s.seqresi, s.ncontacts, aln, resi))
+                str_site = ";".join(aligned_bs)
+                if overlap < 3:
+                    continue
+
+                pdb = report.hit.split('|')[0]
+                o.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                        report.query, pdb+'|'+chain, report.identical, report.positive, report.align_len, str_site))
+
+
+BS_PROPS = namedtuple('BS_PROPS', 'bs_len bs_covered bs_aligned bs_identical bs_positive bs_contacts bs_BLOSUM bs_score1')
+def bs_properties(blosum, site):
+    bs_len = len(site)
+    bs_err = 0  # @
+    bs_covered = 0  # L,-
+    bs_aligned = 0  # L
+    bs_identical = 0
+    bs_contacts = 0
+    bs_positive = 0
+    bs_score1 = 0.0
+    bs_BLOSUM = 0.0
+
+    for resn1, resi, ncont, resn2, resi2 in site:
+        ncont = int(ncont)
+        bs_contacts += ncont
+        blos = 0.0
+        if resn2 == "*":  # not aligned
+            pass
+            blos = -4.0
+        elif resn2 == "@":  # error
+            bs_err += 1
+            blos = -4.0
+        elif resn2 == "-":  # gap
+            bs_covered += 1
+            blos = -4.0
+        else:
+            bs_covered += 1
+            bs_aligned += 1
+            try:
+                blos = blosum[resn1][resn2]
+            except:
+                blos = 0.0
+            if blos > 0:
+                bs_positive += 1
+        if resn1 == resn2:
+            bs_identical += 1
+        bs_BLOSUM += blos
+        bs_score1 += ncont * blos
+    return BS_PROPS._make((bs_len, bs_covered, bs_aligned, bs_identical, bs_positive, bs_contacts, bs_BLOSUM, bs_score1))
+
+
+def merge_bs_alignments(fname_in, fname_out):
+    # complex_types = {}
+    # with open("/Users/agoncear/projects/Interactome/Workflow/Structures/template_analysis.tab", 'r') as f:
+    #     for line in islice(f, 1, None):
+    #         # template\tpdb\tA\tB\tprot_A\tprot_B\tcomplex_type
+    #         template, pdb, A, B, prot_A, prot_B, complex_type = line.strip().split("\t")
+    #         complex_types[template] = complex_type
+
+    blosum = read_BLOSUM_matrix("/Users/agoncear/projects/Interactome/interactome/sequences/BLOSUM62")
+
+    merged_bs_aln = defaultdict(list)
+    c = 0
+    with open(fname_in, 'r') as f, open(fname_out, 'w') as o:
+        for line in islice(f, 1, None):
+            query, template, identical, positive, aln_len, site = line.strip().split("\t")
+            c += 1
+            if c % 100000 == 0:
+                print c
+            # if c % 10000 == 0:
+            #     break
+
+            # 0       1         2 (0)     3 (1)   4 (2)   5 (3)
+            identical = int(identical)
+            positive = int(positive)
+            aln_len = int(aln_len)
+            residues = []
+            # print query, template, 
+            merged = False
+            for s in site.split(";"):
+                residues.append(s.split(","))  # 0:X, 1:X', 2:N, 3:Y, 4:Y'
+            # print "RRRR", residues
+            for i, alignment in enumerate(merged_bs_aln[(query, template)]):
+                residue_overlaps = 0
+                different_bs = False
+                new_aln = copy.copy(alignment)
+
+                if len(alignment[3]) != len(residues):
+                    # it's a different binding site - don't merge
+                    different_bs = True
+                    # print "diff bs",
+                    break
+
+                for j, r in enumerate(residues):
+                    # compare site residues
+                    # print alignment[3], j
+                    # print alignment[3][j]
+                    if alignment[3][j][0] != r[0] or alignment[3][j][1] != r[1]:
+                        # it's a different binding site - don't merge
+                        # print "diff bs",
+                        different_bs = True
+                        break
+
+                    aln_char = alignment[3][j][3]  # alignment[3] is site                    
+                    this_char = r[3]
+                    this_resi = r[4]
+                    if aln_char != '*' and this_char != '*':
+                        residue_overlaps += 1
+                    elif aln_char == '*' and this_char != '*' and this_char != '@':
+                        new_aln[3][j][3] = this_char
+                        new_aln[3][j][4] = this_resi
+
+                if residue_overlaps == 0 and different_bs is False:
+                    merged_bs_aln[(query, template)][i] = copy.copy(new_aln)
+                    merged_bs_aln[(query, template)][i][0] += identical
+                    merged_bs_aln[(query, template)][i][1] += positive
+                    merged_bs_aln[(query, template)][i][2] += aln_len
+                    merged = True
+                    # print "Merged"
+                    break
+            if not merged:
+                # print "Added"
+                merged_bs_aln[(query, template)].append([identical, positive, aln_len, residues])
+
+        pp = pprint.PrettyPrinter(depth=6)
+        o.write("query\ttemplate\tidentical\tpositive\taln_len\tbs_len\tbs_covered\tbs_aligned\tbs_identical\tbs_positive\tbs_contacts\tbs_BLOSUM\tbs_score1\tsite\n")
+        for (query, template), bs_alignments in merged_bs_aln.iteritems():
+            for bs_alignment in bs_alignments:
+                # pp.pprint(tuple(bs_alignment))
+                identical, positive, aln_len, merged_site = tuple(bs_alignment)
+
+                bs_len, bs_covered, bs_aligned, bs_identical, bs_positive, bs_contacts, bs_BLOSUM, bs_score1 = bs_properties(blosum, merged_site)
+
+                m_site = ["{},{},{},{},{}".format(*s) for s in merged_site]
+                merged_site_str = ";".join(m_site)
+
+                o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                        query, template, identical, positive, aln_len,
+                        bs_len, bs_covered, bs_aligned, bs_identical, bs_positive,
+                        bs_contacts, bs_BLOSUM, bs_score1,
+                        merged_site_str))
 
 
 if __name__ == '__main__':
-    merge_alignments("/Users/agoncear/projects/Interactome/Workflow/BLAST-results/human_deltablast_report2.tab")
+    dirname = "/Users/agoncear/projects/Interactome/Workflow"
+    # binding_site_alignments(dirname + "/Structures/pdb_templates_5A.tab",
+    #                         dirname + "/BLAST-results/human_deltablast_report2.tab",
+    #                         dirname + "/BLAST-results/human_deltablast_report_merged.tab")
+
+    merge_bs_alignments(dirname + "/BLAST-results/human_deltablast_report_merged.tab",
+                        dirname + "/BLAST-results/human_deltablast_report_merged-bs.tab")
+
+
+
