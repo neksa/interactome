@@ -192,7 +192,8 @@ def step3():
                 o.write("query_A\tquery_B\ttemplate\tid_A\taln_len_A\tsite_A\tid_B\taln_len_B\tsite_B\n")
 
                 for result in gen_results:
-                    if c % 1000 == 0: print c
+                    if c % 1000 == 0:
+                        print c
                     c += 1
 
                     tpl, queries = result
