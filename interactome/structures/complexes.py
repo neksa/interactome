@@ -62,7 +62,7 @@ class Complexes:
         return aln
 
 
-    def templatesWithHits(self, templates, hits, benchmark=False):
+    def templatesWithHits(self, template, hits, benchmark=False):
         """
         This is an inverse matching: queries are assigned to templates via BLAST hits.
 
@@ -78,22 +78,15 @@ class Complexes:
         min_bs_residue_covereage = 3  # 3 residues should be covered by binding site alignment
         min_bs_fraction_coverage = 0.7  # At least half of the interface residues should be covered by the alignments
 
-        (pdb, chain1, chain2), (site1, site2) = templates
+        (pdb, chain1, chain2), (site1, site2) = template
         site1.sort(key=lambda x: x.seqresi)
         site2.sort(key=lambda x: x.seqresi)
         pdb = pdb.upper()
-        # template chains and sites
-        # _real chains do not contain underscores, while generated may have A_1, A_2,... in their names
-        # we remove _1, _2 from the chain names
-        # idx = chain1.find('_')
-        # chain1_real = chain1[:idx] if idx != -1 else chain1
         chain1_real = chain1.split("_")[0]
-        # idx = chain2.find('_')
-        # chain2_real = chain2[:idx] if idx != -1 else chain2
         chain2_real = chain2.split("_")[0]
 
         # print pdb, chain1_real, chain2_real
-        print "T:", pdb, chain1_real, chain2_real
+        print "T:", pdb, chain1, chain2, "real:", chain1_real, chain2_real
         queries = []
         # q1_pdb = ""
         # q1_chain = ""
