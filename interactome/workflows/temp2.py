@@ -1,10 +1,9 @@
 #
-
 import os
 import fnmatch
 from itertools import islice
-from complexes import Complexes
-from collections import defaultdict, namedtuple
+from interactome.structures.complexes import Complexes
+from collections import defaultdict
 
 def pdb_proteins(pdb_path, fname):
     # chain, m.chain_author, m.uniprot, m.begin, m.end
@@ -73,25 +72,35 @@ def protein_genes():
     return uniprot_gene
 
 
+def site_analysis(site):
+    bs_len = len(site)
+    ncontacts = sum([r.ncontacts for r in site])
+    return bs_len, ncontacts
+
+
 def main():
-    pdb_templates = "pdb_templates_5A.tab"
-    pdb_path = "../Workflow/Interfaces/"
+    root = "/Users/agoncear/projects/Interactome/Workflow"
+    pdb_path = root + "/Interfaces/"
+    struct_path = root + "/Structures"
+    pdb_templates_fname = struct_path + "/pdb_templates_5A.tab"
+    pdb_proteins_fname = struct_path + "/pdb_proteins.tab"
+    template_analysis_fname = struct_path + "/template_analysis.tab"
 
     print "Loading PDB-Uniprot mapping..."
-    pdb_uniprot = pdb_proteins(pdb_path)[0]
+    pdb_uniprot = pdb_proteins(pdb_path, pdb_proteins_fname)[0]
     
     # print "Loading Uniprot-Entrez Gene ID mapping..."
     # uniprot_gene = protein_genes()
 
     complexes = Complexes()
     print "Loading Complexes-templates..."
-    templates = complexes.loadTemplates(pdb_templates)#, mapping)
+    templates = complexes.loadTemplates(pdb_templates_fname)#, mapping)
     # print "Info: Number of templates (PDB+chain+chain) = ", len(templates.keys())
 
 
-    with open("template_analysis.tab", 'w') as o:
-        o.write("template\tpdb\tA\tB\tprot_A\tprot_B\tcomplex_type\n")
-        for (pdb, A, B), _ in templates:
+    with open(template_analysis_fname, 'w') as o:
+        o.write("template\tpdb\tA\tB\tprot_A\tprot_B\tcomplex_type\tbs_lenA\tncontactsA\tbs_lenB\tncontactsB\n")
+        for (pdb, A, B), (siteA, siteB) in templates:
             pdb_chain_A = pdb.upper() + '|' + A.split("_",1)[0]
             pdb_chain_B = pdb.upper() + '|' + B.split("_",1)[0]
             template = pdb.upper() + '|' + A + '|' + B
@@ -120,7 +129,12 @@ def main():
             if len(uniprots_B) > 0:
                 prot_B = list(uniprots_B)[0]
 
-            o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(template, pdb, A.split("_",1)[0], B.split("_",1)[0], prot_A, prot_B, complex_type))
+            bs_lenA, ncontactsA = site_analysis(siteA)
+            bs_lenB, ncontactsB = site_analysis(siteB)
+
+            o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                template, pdb, A.split("_", 1)[0], B.split("_", 1)[0], prot_A, prot_B, complex_type,
+                bs_lenA, ncontactsA, bs_lenB, ncontactsB))
 
 # with open("matches.processed.tab", 'r') as f:
 #     for line in islice(f, 1, None):
