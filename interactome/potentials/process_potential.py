@@ -4,8 +4,9 @@ calculate Log odds (LOD)
 Save LOD to AAIndex matrix format:
 ARNDCQEGHILKMFPSTWYV
 """
-from collections import defaultdict
 import math
+import sys
+from collections import defaultdict
 from scipy.constants import k as kB
 
 AAindex = {}
@@ -21,27 +22,27 @@ for i, a in enumerate(aa_list):
         AA = AA_list[j]+"_"+AA_list[i]
         AAindex[AA] = aa
 
+# print AAindex
 # def AAIndex(AA):
 #     return AA
+
 
 def get_hist(fname):
     hist = defaultdict(lambda: [1]*20)
     with open(fname) as f:
         for line in f:
-            # AA, ca, _ = line.split("\t", 2)
             fields = line.split("\t", 2)
-            if len(fields) != 3: continue
-            aa, ca, _ = fields
+            if len(fields) != 3:
+                continue
+            AA, ca, _ = fields
+            aa = AA[0] + AA[2]  # A_A -> AA
+            ca = float(ca)
 
             # aa = AAindex[AA]
-            ca = float(ca)
             # ca_round = int(round(ca, 0)) 
-            
             # if ca_round > 20: continue
             # if ca_round < 2: continue
-            
             # it should be 18 bins  0:2ca-3ca, 1:3ca-4ca, 2:4ca-5ca, ... 19-20
-
             # if 0.0 < ca <= 2.0: bin = 0
             # if 2.0 < ca <= 4.0: bin = 1
             # if 4.0 < ca <= 6.0: bin = 2
@@ -53,38 +54,35 @@ def get_hist(fname):
             # if 16.0 < ca <= 18.0: bin = 8
             # if 18.0 < ca <= 20.0: bin = 9
             # if 20.0 < ca       : bin = 10
-
             # 0-7, 7-14, 14-20, 21-
             # bin = int(math.floor(ca/3.0))
             # if ca > 20: bin = 10
 
             # 2-3, 3-4, 4-5
-            bin = int(round(ca)) - 2
-            if bin < 0: bin = 0
-            if bin > 15-2: bin = 15-2
-
+            b = int(round(ca)) - 2
+            if b < 0:
+                b = 0
+            if b > 15-2:
+                b = 15-2
             # bin = int(math.floor(ca/10.0))
             # if ca > 20: bin = 2
+            hist[aa][b] += 1
 
-            hist[aa][bin] += 1
-
+    # print hist
     # normalize
     sums = {aa: float(sum(h)) for aa, h in hist.iteritems()}
     # print "SUMS", sums["AA"]
     # print "HIST", hist["AA"]
     # print "MIN", min(sums.values())
-
     for aa, h in hist.iteritems():
-        for bin, v in enumerate(h):
-            hist[aa][bin] = v / sums[aa]
-
-    epsilons = {aa: math.pow(10, math.ceil(math.log10(1.0 / sums[aa]))) for aa in sums.iterkeys()}
+        for b, v in enumerate(h):
+            hist[aa][b] = v / sums[aa]
+    epsilons = {aa: math.pow(10, math.ceil(math.log10(5.0 / sums[aa]))) for aa in sums.iterkeys()}
     return hist, epsilons
 
 
 def get_potential(fname1, fname2):
     h_nat, e_nat = get_hist(fname1)
-    # print h_nat, e_nat
     h_back, e_back = get_hist(fname2)
     epsilons = {aa: max(e_nat[aa], e_back[aa]) for aa in e_nat.iterkeys()}
     # print "NAT:", h_nat["AA"]
@@ -97,29 +95,50 @@ def get_potential(fname1, fname2):
             v_nat = h_nat[aa][b]
             v_back = h_back[aa][b]
             # print v_nat, v_back
-            if False:  # v_nat < epsilons[aa] or v_back < epsilons[aa]:
+            if v_nat < epsilons[aa] or v_back < epsilons[aa]:
                 p[aa][b] = 0.0
             else:
-                # p[aa][bin] = - kB*300.0*round(math.log(v_nat / v_back), 5)
-                p[aa][b] = round(math.log(v_nat / v_back), 5)
+                p[aa][b] = round(math.log(v_nat / v_back), 6)
+            # else:
+            #     # p[aa][bin] = - kB*300.0*round(math.log(v_nat / v_back), 5)
+            #     # p[aa][b] = round(math.log(v_nat / v_back), 10)
+            # print aa, b, v_nat, v_back, p[aa][b]
             # print p[aa][b]
     return p
 
 
 def write_potential_as_matrix(p, fname=""):
     with open(fname, 'w') as o:
-        for bin in range(len(p["A_A"])):
-            o.write("H GONA0000{}\n".format(bin))
-            o.write("D Ca-Ca distance potential for PPI interface residues\n")
+        for bin_num in range(len(p["AA"])):
+            o.write("H GONA0000{}\n".format(bin_num))
+            o.write("D Ca-Ca distance potential for PPI interface residues ({}-{}A)\n".format(bin_num + 1.5, bin_num + 2.5))
             o.write("A Goncearenco, A.\n")
             o.write("M rows = ARNDCQEGHILKMFPSTWYV, cols = ARNDCQEGHILKMFPSTWYV\n")
             for i, a in enumerate(aa_list):
                 l = []
                 for j, b in enumerate(aa_list):
-                    if j > i: continue
-                    l.append(str(p[a+'_'+b][bin]))
+                    if j > i:
+                        continue
+                    v = p.get(a+b)
+                    if v is None:
+                        v = p.get(b+a)
+                    # v[bin_num]
+                    l.append(str(v[bin_num]))
                 o.write("  " + "  ".join(l) + "\n")
             o.write("//\n")
+
+    # symmetric, redundant, easy to load
+    with open(fname + '-warp', 'w') as o:
+        for i, a in enumerate(aa_list):
+            for j, b in enumerate(aa_list):
+                v = p.get(a+b)
+                if v is None:
+                    v = p.get(b+a)
+                l = []
+                l.append(a+b)
+                for bin_num in range(len(p["AA"])):
+                    l.append('{0: >9}'.format(v[bin_num]))
+                o.write("\t".join(l) + "\n")
 
 
 if __name__ == '__main__':
@@ -130,6 +149,5 @@ if __name__ == '__main__':
     f2 = get_root() + "/Potential/distance_stats_shuffled.tab"
     f_pot = get_root() + "/Potential/potential_1.index"
     p = get_potential(f1, f2)
-    print "A_A:", p["A_A"]
+    # print "A-C:", p["AC"]
     write_potential_as_matrix(p, f_pot)
-

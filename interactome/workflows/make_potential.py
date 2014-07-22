@@ -213,11 +213,23 @@ def calc_distributions(fname_in, fname_out, shuffled=False):
     k_resn = None
     l_resn = None
 
+    c1 = 0
     with open(fname_out, 'w') as o:
-        for pdb, structure in distributions_iterator(fname_in):
+        for pdb, structure in distributions_iterator(fname_in):            
+            c1 += 1
+            print c1, pdb,
+            # if c % 100:
+            #     print ".",
+            c2 = 0
             for i, chain1 in enumerate(structure.iterkeys()):
+
+                # TEMP! Normalizing for huge structures with many chains that contribute to bias in statistics
+                if i > 0: continue
+
                 for j, chain2 in enumerate(structure.iterkeys()):
                     if j > i:
+
+
                         #  # ##### Prepare lists of residues for random choice of residue #####                        
                         # if shuffled:
                         #     k_set = set()
@@ -241,31 +253,39 @@ def calc_distributions(fname_in, fname_out, shuffled=False):
 
                         residues_chain1 = structure[chain1]
                         residues_chain2 = structure[chain2]
-                        # if len(residues_chain1) < 5: continue
-                        # if len(residues_chain2) < 5: continue
+                        if len(residues_chain1) < 5 or len(residues_chain2) < 5:
+                            continue
 
                         residue_names1 = [r[0] for r in residues_chain1]
                         residue_names2 = [r[0] for r in residues_chain2]
+
+                        # if len(residue_names1) < 15:
+                        #     print "R1", residue_names1
 
                         if shuffled:
                             random.shuffle(residue_names1)
                             random.shuffle(residue_names2)
 
+                        # if len(residue_names1) < 15:
+                        #     print "R1S", residue_names1
+
                         for k, residue1 in enumerate(residues_chain1):
                             resn1, resi1, Ca1, Cb1, vCb1, quaternion1 = residue1
 
-                            # check if the residue name has not been changed by shuffling
-                            if shuffled and resn1 == residue_names1[k]:
-                                continue
+                            resn1_shuffl = residue_names1[k]
 
                             for l, residue2 in enumerate(residues_chain2):
                                 resn2, resi2, Ca2, Cb2, vCb2, quaternion2 = residue2
                                 # print Ca2, Ca1
+                                resn2_shuffl = residue_names2[l]
 
                                 # check if the residue name has not been changed by shuffling
-                                if shuffled and resn2 == residue_names2[l]:
+                                if shuffled and resn1 == resn1_shuffl and resn2 == resn2_shuffl:
                                     continue
 
+                                if shuffled:
+                                    resn1 = residue_names1[k]
+                                    resn2 = residue_names2[l]
                                 res = (resn1, resn2) if aa_short.index(resn1) <= aa_short.index(resn2) else (resn2, resn1)
                                 res = "{}_{}".format(*res)
 
@@ -324,6 +344,9 @@ def calc_distributions(fname_in, fname_out, shuffled=False):
                                 # print res, dCa, dCb, dvCb, cos_theta, theta
                                 o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                                     res, dCa, dCb, dvCb, cos_theta, theta, dtheta, cos_omega, omega, domega))
+                                
+                                c2 += 1
+            print c2
 
 
 """
@@ -472,6 +495,3 @@ if __name__ == '__main__':
 
     # calc_distributions(interface_residues, get_root() + "/Potential/distance_stats.tab")
     calc_distributions(interface_residues, get_root() + "/Potential/distance_stats_shuffled.tab", shuffled=True)
-
-
-
