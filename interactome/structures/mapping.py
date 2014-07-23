@@ -6,6 +6,7 @@ from itertools import islice
 from complexes import Complexes
 from collections import defaultdict
 
+
 def pdb_proteins(pdb_path, fname):
     # chain, m.chain_author, m.uniprot, m.begin, m.end
     pdb_uniprot = defaultdict(list)
