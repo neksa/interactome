@@ -26,8 +26,16 @@ for i, a in enumerate(aa_list):
 # def AAIndex(AA):
 #     return AA
 
+def bin_1(ca):
+    b = int(round(ca)) - 2
+    if b < 0:
+        b = 0
+    if b > 15-2:
+        b = 15-2
+    return b
 
-def get_hist(fname):
+
+def get_hist(fname, binfunc):
     hist = defaultdict(lambda: [1]*20)
     with open(fname) as f:
         for line in f:
@@ -59,11 +67,7 @@ def get_hist(fname):
             # if ca > 20: bin = 10
 
             # 2-3, 3-4, 4-5
-            b = int(round(ca)) - 2
-            if b < 0:
-                b = 0
-            if b > 15-2:
-                b = 15-2
+            b = binfunc(b)
             # bin = int(math.floor(ca/10.0))
             # if ca > 20: bin = 2
             hist[aa][b] += 1

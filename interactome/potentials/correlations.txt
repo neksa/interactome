@@ -1,0 +1,229 @@
+####################################
+Analyzing potentials in  potential_1.index
+ACCESSION: GONA00002
+compare GONA00002 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+PARB960102	R=0.5	rho=0.25	Modified version of the Miyazawa-Jernigan transfer energy                        (Park, B. and Levitt, M.)
+BONM030105	R=-0.36	rho=-0.19	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+SKOJ000101	R=0.32	rho=0.21	Statistical quasichemical potential with the partially composition-corrected     (Skolnick, J., Kolinski, A. and Ortiz, A.)
+BONM030104	R=-0.3	rho=-0.11	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+BONM030106	R=-0.25	rho=-0.18	Distances between centers of interacting side chains in the parallel             (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+SKOJ000102	R=0.25	rho=0.11	Statistical quasichemical potential with the composition-corrected pair scale    (Skolnick, J., Kolinski, A. and Ortiz, A.)
+BASU010101	R=0.24	rho=0.18	Optimization-based potential derived by the modified perceptron criterion        (Bastolla, U., Farwer, J., Knapp, E.W. and Vendruscolo, M.)
+MOOG990101	R=-0.23	rho=-0.14	Quasichemical potential derived from interfacial regions of protein-protein      (Moont, G., Gabb, H.A. and Sternberg, M.J.E.)
+SKOJ970101	R=0.23	rho=0.16	Statistical potential derived by the quasichemical approximation                 (Skolnick, J., Jaroszewski, L., Kolinski, A. and Godzik, A.)
+KESO980101	R=0.22	rho=0.12	Quasichemical transfer energy derived from interfacial regions of                (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+PARB960101	R=0.2	rho=0.16	Statistical contact potential derived by the quasichemical approximation         (Park, B. and Levitt, M.)
+BONM030103	R=0.2	rho=0.11	Quasichemical statistical potential for the parallel orientation of interacting  (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+MIYS960101	R=0.17	rho=0.08	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+TANS760101	R=0.13	rho=0.05	Statistical contact potential derived from 25 x-ray protein structures           (Tanaka, S. and Scheraga, H.A.)
+MIYS850102	R=0.12	rho=0.03	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+
+ACCESSION: GONA00003
+compare GONA00003 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+BONM030105	R=-0.46	rho=-0.42	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+BONM030104	R=-0.43	rho=-0.39	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+PARB960102	R=0.38	rho=0.18	Modified version of the Miyazawa-Jernigan transfer energy                        (Park, B. and Levitt, M.)
+BONM030106	R=-0.35	rho=-0.33	Distances between centers of interacting side chains in the parallel             (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+SIMK990102	R=-0.3	rho=-0.3	Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)      (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+KESO980101	R=0.28	rho=0.27	Quasichemical transfer energy derived from interfacial regions of                (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+SKOJ000101	R=0.26	rho=0.23	Statistical quasichemical potential with the partially composition-corrected     (Skolnick, J., Kolinski, A. and Ortiz, A.)
+MIYS960102	R=-0.24	rho=-0.24	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+MIYS990107	R=-0.24	rho=-0.22	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+ZHAC000104	R=-0.23	rho=-0.2	Environment-dependent residue contact energies (rows = strand, cols = strand)    (Zhang, C. and Kim, S.H.)
+ROBB790102	R=-0.23	rho=-0.15	Interaction energies derived from side chain contacts in the interiors of        (Robson, B. and Osguthorpe, D.J.)
+SKOJ000102	R=0.21	rho=0.19	Statistical quasichemical potential with the composition-corrected pair scale    (Skolnick, J., Kolinski, A. and Ortiz, A.)
+SIMK990101	R=-0.2	rho=-0.2	Distance-dependent statistical potential (contacts within 0-5 Angstrooms)        (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+PARB960101	R=0.19	rho=0.21	Statistical contact potential derived by the quasichemical approximation         (Park, B. and Levitt, M.)
+MIRL960101	R=-0.19	rho=-0.17	Statistical potential derived by the maximization of the harmonic mean of Z      (Mirny, L.A. and Shakhnovich, E.I.)
+
+ACCESSION: GONA00004
+compare GONA00004 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+BONM030105	R=-0.5	rho=-0.55	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+BONM030104	R=-0.46	rho=-0.46	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+BONM030106	R=-0.44	rho=-0.48	Distances between centers of interacting side chains in the parallel             (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+KESO980101	R=0.4	rho=0.43	Quasichemical transfer energy derived from interfacial regions of                (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+PARB960101	R=0.36	rho=0.37	Statistical contact potential derived by the quasichemical approximation         (Park, B. and Levitt, M.)
+MOOG990101	R=-0.35	rho=-0.38	Quasichemical potential derived from interfacial regions of protein-protein      (Moont, G., Gabb, H.A. and Sternberg, M.J.E.)
+SKOJ000102	R=0.34	rho=0.38	Statistical quasichemical potential with the composition-corrected pair scale    (Skolnick, J., Kolinski, A. and Ortiz, A.)
+SKOJ000101	R=0.33	rho=0.35	Statistical quasichemical potential with the partially composition-corrected     (Skolnick, J., Kolinski, A. and Ortiz, A.)
+TANS760101	R=0.33	rho=0.35	Statistical contact potential derived from 25 x-ray protein structures           (Tanaka, S. and Scheraga, H.A.)
+BONM030103	R=0.28	rho=0.29	Quasichemical statistical potential for the parallel orientation of interacting  (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+MIYS960103	R=0.26	rho=0.34	Number of contacts between side chains derived from 1168 x-ray protein           (Miyazawa, S. and Jernigan, R.L.)
+ROBB790102	R=-0.24	rho=-0.16	Interaction energies derived from side chain contacts in the interiors of        (Robson, B. and Osguthorpe, D.J.)
+SKOJ970101	R=0.23	rho=0.26	Statistical potential derived by the quasichemical approximation                 (Skolnick, J., Jaroszewski, L., Kolinski, A. and Godzik, A.)
+BASU010101	R=0.23	rho=0.31	Optimization-based potential derived by the modified perceptron criterion        (Bastolla, U., Farwer, J., Knapp, E.W. and Vendruscolo, M.)
+MIYS850102	R=0.2	rho=0.19	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+
+ACCESSION: GONA00005
+compare GONA00005 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+ROBB790102	R=-0.47	rho=-0.43	Interaction energies derived from side chain contacts in the interiors of        (Robson, B. and Osguthorpe, D.J.)
+BONM030104	R=-0.37	rho=-0.39	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+BONM030105	R=-0.36	rho=-0.4	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+ZHAC000104	R=-0.34	rho=-0.31	Environment-dependent residue contact energies (rows = strand, cols = strand)    (Zhang, C. and Kim, S.H.)
+MIYS960103	R=0.29	rho=0.29	Number of contacts between side chains derived from 1168 x-ray protein           (Miyazawa, S. and Jernigan, R.L.)
+BONM030106	R=-0.29	rho=-0.31	Distances between centers of interacting side chains in the parallel             (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+ZHAC000101	R=-0.28	rho=-0.23	Environment-dependent residue contact energies (rows = helix, cols = helix)      (Zhang, C. and Kim, S.H.)
+MIYS990107	R=-0.26	rho=-0.3	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+BRYS930101	R=-0.26	rho=-0.22	Distance-dependent statistical potential (only energies of contacts within       (Bryant, S.H. and Lawrence, C.E.)
+MIYS990106	R=-0.26	rho=-0.23	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+MIYS960102	R=-0.26	rho=-0.3	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+TOBD000102	R=-0.24	rho=-0.17	Optimization-derived potential obtained for large set of decoys                  (Tobi, D., Shafran, G., Linial, N. and Elber, R.)
+TANS760102	R=0.24	rho=0.21	Number of contacts between side chains derived from 25 x-ray protein structures  (Tanaka, S. and Scheraga, H.A.)
+SIMK990101	R=-0.24	rho=-0.27	Distance-dependent statistical potential (contacts within 0-5 Angstrooms)        (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+SIMK990102	R=-0.23	rho=-0.3	Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)      (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+
+ACCESSION: GONA00006
+compare GONA00006 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+MIYS990107	R=-0.43	rho=-0.47	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+MIYS960102	R=-0.43	rho=-0.46	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+SIMK990102	R=-0.42	rho=-0.46	Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)      (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+MIYS850103	R=-0.35	rho=-0.39	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+MIRL960101	R=-0.35	rho=-0.39	Statistical potential derived by the maximization of the harmonic mean of Z      (Mirny, L.A. and Shakhnovich, E.I.)
+ZHAC000104	R=-0.34	rho=-0.28	Environment-dependent residue contact energies (rows = strand, cols = strand)    (Zhang, C. and Kim, S.H.)
+MIYS990106	R=-0.34	rho=-0.3	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+KESO980102	R=-0.34	rho=-0.41	Quasichemical energy in an average protein environment derived from interfacial  (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+SIMK990101	R=-0.34	rho=-0.39	Distance-dependent statistical potential (contacts within 0-5 Angstrooms)        (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+BETM990101	R=-0.33	rho=-0.33	Modified version of the Miyazawa-Jernigan transfer energy                        (Betancourt,M.R. and Thirumalai,D.)
+ROBB790102	R=-0.33	rho=-0.34	Interaction energies derived from side chain contacts in the interiors of        (Robson, B. and Osguthorpe, D.J.)
+SIMK990105	R=-0.31	rho=-0.41	Distance-dependent statistical potential (contacts longer than 12 Angstrooms)    (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+BONM030104	R=-0.3	rho=-0.32	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+KOLA930101	R=-0.29	rho=-0.3	Statistical potential derived by the quasichemical approximation                 (Kolinski, A., Godzik, A. and Skolnick, J.)
+GODA950101	R=-0.27	rho=-0.29	Quasichemical statistical potential derived from  buried contacts                (Godzik, A., Kolinski, A. and Skolnick, J.)
+
+ACCESSION: GONA00007
+compare GONA00007 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+MIYS960102	R=-0.38	rho=-0.43	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+SIMK990102	R=-0.37	rho=-0.42	Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)      (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+MIYS990107	R=-0.37	rho=-0.42	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+MIRL960101	R=-0.35	rho=-0.41	Statistical potential derived by the maximization of the harmonic mean of Z      (Mirny, L.A. and Shakhnovich, E.I.)
+SIMK990101	R=-0.35	rho=-0.41	Distance-dependent statistical potential (contacts within 0-5 Angstrooms)        (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+MIYS850103	R=-0.35	rho=-0.4	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+GODA950101	R=-0.32	rho=-0.33	Quasichemical statistical potential derived from  buried contacts                (Godzik, A., Kolinski, A. and Skolnick, J.)
+BRYS930101	R=-0.29	rho=-0.29	Distance-dependent statistical potential (only energies of contacts within       (Bryant, S.H. and Lawrence, C.E.)
+BONM030105	R=-0.27	rho=-0.16	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+VENM980101	R=-0.25	rho=-0.25	Statistical potential derived by the maximization of the perceptron criterion    (Vendruscolo, M. and Domany E.)
+ROBB790102	R=-0.24	rho=-0.22	Interaction energies derived from side chain contacts in the interiors of        (Robson, B. and Osguthorpe, D.J.)
+SIMK990103	R=-0.24	rho=-0.28	Distance-dependent statistical potential (contacts within 7.5-10 Angstrooms)     (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+BONM030104	R=-0.24	rho=-0.19	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+KESO980102	R=-0.24	rho=-0.27	Quasichemical energy in an average protein environment derived from interfacial  (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+SIMK990105	R=-0.23	rho=-0.33	Distance-dependent statistical potential (contacts longer than 12 Angstrooms)    (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+
+ACCESSION: GONA00008
+compare GONA00008 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+SKOJ000101	R=-0.4	rho=-0.44	Statistical quasichemical potential with the partially composition-corrected     (Skolnick, J., Kolinski, A. and Ortiz, A.)
+SKOJ970101	R=-0.39	rho=-0.41	Statistical potential derived by the quasichemical approximation                 (Skolnick, J., Jaroszewski, L., Kolinski, A. and Godzik, A.)
+MOOG990101	R=0.37	rho=0.38	Quasichemical potential derived from interfacial regions of protein-protein      (Moont, G., Gabb, H.A. and Sternberg, M.J.E.)
+PARB960101	R=-0.36	rho=-0.4	Statistical contact potential derived by the quasichemical approximation         (Park, B. and Levitt, M.)
+PARB960102	R=-0.35	rho=-0.38	Modified version of the Miyazawa-Jernigan transfer energy                        (Park, B. and Levitt, M.)
+BETM990101	R=-0.35	rho=-0.36	Modified version of the Miyazawa-Jernigan transfer energy                        (Betancourt,M.R. and Thirumalai,D.)
+KESO980101	R=-0.35	rho=-0.36	Quasichemical transfer energy derived from interfacial regions of                (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+BASU010101	R=-0.34	rho=-0.42	Optimization-based potential derived by the modified perceptron criterion        (Bastolla, U., Farwer, J., Knapp, E.W. and Vendruscolo, M.)
+SKOJ000102	R=-0.32	rho=-0.39	Statistical quasichemical potential with the composition-corrected pair scale    (Skolnick, J., Kolinski, A. and Ortiz, A.)
+BONM030103	R=-0.32	rho=-0.38	Quasichemical statistical potential for the parallel orientation of interacting  (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+MIYS960101	R=-0.3	rho=-0.3	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+MIYS850102	R=-0.3	rho=-0.28	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+TANS760101	R=-0.3	rho=-0.3	Statistical contact potential derived from 25 x-ray protein structures           (Tanaka, S. and Scheraga, H.A.)
+BONM030102	R=-0.29	rho=-0.34	Quasichemical statistical potential for the intermediate orientation of          (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+BONM030105	R=0.29	rho=0.32	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+
+ACCESSION: GONA00009
+compare GONA00009 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+BONM030106	R=0.33	rho=0.34	Distances between centers of interacting side chains in the parallel             (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+PARB960102	R=-0.31	rho=-0.29	Modified version of the Miyazawa-Jernigan transfer energy                        (Park, B. and Levitt, M.)
+BONM030105	R=0.29	rho=0.33	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+SKOJ000101	R=-0.29	rho=-0.27	Statistical quasichemical potential with the partially composition-corrected     (Skolnick, J., Kolinski, A. and Ortiz, A.)
+BONM030104	R=0.29	rho=0.32	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+KESO980101	R=-0.28	rho=-0.28	Quasichemical transfer energy derived from interfacial regions of                (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+SKOJ970101	R=-0.28	rho=-0.26	Statistical potential derived by the quasichemical approximation                 (Skolnick, J., Jaroszewski, L., Kolinski, A. and Godzik, A.)
+PARB960101	R=-0.27	rho=-0.24	Statistical contact potential derived by the quasichemical approximation         (Park, B. and Levitt, M.)
+TANS760101	R=-0.27	rho=-0.25	Statistical contact potential derived from 25 x-ray protein structures           (Tanaka, S. and Scheraga, H.A.)
+MIYS960101	R=-0.26	rho=-0.24	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+MIYS850102	R=-0.25	rho=-0.23	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+BONM030103	R=-0.24	rho=-0.21	Quasichemical statistical potential for the parallel orientation of interacting  (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+SKOJ000102	R=-0.24	rho=-0.21	Statistical quasichemical potential with the composition-corrected pair scale    (Skolnick, J., Kolinski, A. and Ortiz, A.)
+MOOG990101	R=0.22	rho=0.22	Quasichemical potential derived from interfacial regions of protein-protein      (Moont, G., Gabb, H.A. and Sternberg, M.J.E.)
+LIWA970101	R=-0.22	rho=-0.19	Modified version of the Miyazawa-Jernigan transfer energy                        (Liwo, A., Oldziej, S., Pincus, M.R., Wawak, R.J., Rackovsky, S. and Scheraga,)
+
+ACCESSION: GONA000010
+compare GONA000010 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+BONM030105	R=0.38	rho=0.42	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+KESO980101	R=-0.34	rho=-0.37	Quasichemical transfer energy derived from interfacial regions of                (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+PARB960101	R=-0.33	rho=-0.28	Statistical contact potential derived by the quasichemical approximation         (Park, B. and Levitt, M.)
+PARB960102	R=-0.33	rho=-0.25	Modified version of the Miyazawa-Jernigan transfer energy                        (Park, B. and Levitt, M.)
+BONM030104	R=0.33	rho=0.36	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+SKOJ000102	R=-0.32	rho=-0.27	Statistical quasichemical potential with the composition-corrected pair scale    (Skolnick, J., Kolinski, A. and Ortiz, A.)
+SKOJ000101	R=-0.32	rho=-0.29	Statistical quasichemical potential with the partially composition-corrected     (Skolnick, J., Kolinski, A. and Ortiz, A.)
+BONM030106	R=0.29	rho=0.34	Distances between centers of interacting side chains in the parallel             (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+TANS760101	R=-0.29	rho=-0.3	Statistical contact potential derived from 25 x-ray protein structures           (Tanaka, S. and Scheraga, H.A.)
+BONM030103	R=-0.25	rho=-0.22	Quasichemical statistical potential for the parallel orientation of interacting  (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+SKOJ970101	R=-0.25	rho=-0.23	Statistical potential derived by the quasichemical approximation                 (Skolnick, J., Jaroszewski, L., Kolinski, A. and Godzik, A.)
+SIMK990102	R=0.24	rho=0.33	Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)      (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+BASU010101	R=-0.24	rho=-0.21	Optimization-based potential derived by the modified perceptron criterion        (Bastolla, U., Farwer, J., Knapp, E.W. and Vendruscolo, M.)
+MIYS960101	R=-0.23	rho=-0.26	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+MIYS850102	R=-0.21	rho=-0.23	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+
+ACCESSION: GONA000011
+compare GONA000011 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+BONM030104	R=0.36	rho=0.35	Distances between centers of interacting side chains in the antiparallel         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+MIYS960102	R=0.32	rho=0.32	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+BONM030105	R=0.31	rho=0.29	Distances between centers of interacting side chains in the intermediate         (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+MIYS990107	R=0.31	rho=0.31	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+MIYS960103	R=-0.31	rho=-0.36	Number of contacts between side chains derived from 1168 x-ray protein           (Miyazawa, S. and Jernigan, R.L.)
+SIMK990102	R=0.29	rho=0.29	Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)      (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+ROBB790102	R=0.28	rho=0.28	Interaction energies derived from side chain contacts in the interiors of        (Robson, B. and Osguthorpe, D.J.)
+TANS760102	R=-0.25	rho=-0.27	Number of contacts between side chains derived from 25 x-ray protein structures  (Tanaka, S. and Scheraga, H.A.)
+ZHAC000104	R=0.25	rho=0.28	Environment-dependent residue contact energies (rows = strand, cols = strand)    (Zhang, C. and Kim, S.H.)
+SIMK990101	R=0.24	rho=0.27	Distance-dependent statistical potential (contacts within 0-5 Angstrooms)        (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+BRYS930101	R=0.24	rho=0.23	Distance-dependent statistical potential (only energies of contacts within       (Bryant, S.H. and Lawrence, C.E.)
+GODA950101	R=0.2	rho=0.17	Quasichemical statistical potential derived from  buried contacts                (Godzik, A., Kolinski, A. and Skolnick, J.)
+MIRL960101	R=0.2	rho=0.25	Statistical potential derived by the maximization of the harmonic mean of Z      (Mirny, L.A. and Shakhnovich, E.I.)
+MIYS850103	R=0.19	rho=0.23	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+KESO980102	R=0.19	rho=0.23	Quasichemical energy in an average protein environment derived from interfacial  (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+
+ACCESSION: GONA000012
+compare GONA000012 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+ROBB790102	R=0.51	rho=0.49	Interaction energies derived from side chain contacts in the interiors of        (Robson, B. and Osguthorpe, D.J.)
+MIYS990107	R=0.51	rho=0.49	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+BETM990101	R=0.51	rho=0.44	Modified version of the Miyazawa-Jernigan transfer energy                        (Betancourt,M.R. and Thirumalai,D.)
+MIYS960102	R=0.51	rho=0.49	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+SIMK990101	R=0.48	rho=0.43	Distance-dependent statistical potential (contacts within 0-5 Angstrooms)        (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+SIMK990105	R=0.47	rho=0.41	Distance-dependent statistical potential (contacts longer than 12 Angstrooms)    (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+MIYS990106	R=0.47	rho=0.43	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+MIYS850103	R=0.46	rho=0.43	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+MIRL960101	R=0.45	rho=0.42	Statistical potential derived by the maximization of the harmonic mean of Z      (Mirny, L.A. and Shakhnovich, E.I.)
+SIMK990102	R=0.44	rho=0.45	Distance-dependent statistical potential (contacts within 5-7.5 Angstrooms)      (Simons, K.T., Ruczinski, I., Kooperberg, C., Fox, B.A., Bystroff, C. and Baker,)
+ZHAC000104	R=0.41	rho=0.38	Environment-dependent residue contact energies (rows = strand, cols = strand)    (Zhang, C. and Kim, S.H.)
+ZHAC000101	R=0.4	rho=0.34	Environment-dependent residue contact energies (rows = helix, cols = helix)      (Zhang, C. and Kim, S.H.)
+KESO980102	R=0.39	rho=0.34	Quasichemical energy in an average protein environment derived from interfacial  (Keskin, O., Bahar, I., Badretdinov, A.Y., Ptitsyn, O.B. and Jernigan, R.L.)
+BRYS930101	R=0.39	rho=0.37	Distance-dependent statistical potential (only energies of contacts within       (Bryant, S.H. and Lawrence, C.E.)
+KOLA930101	R=0.37	rho=0.32	Statistical potential derived by the quasichemical approximation                 (Kolinski, A., Godzik, A. and Skolnick, J.)
+
+ACCESSION: GONA000013
+compare GONA000013 from potential_1.index with all the matrices
+Top 15 matching matrices ordered by Pearson R:
+MIYS990106	R=0.47	rho=0.47	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+ZHAC000101	R=0.45	rho=0.43	Environment-dependent residue contact energies (rows = helix, cols = helix)      (Zhang, C. and Kim, S.H.)
+ZHAC000104	R=0.44	rho=0.45	Environment-dependent residue contact energies (rows = strand, cols = strand)    (Zhang, C. and Kim, S.H.)
+LIWA970101	R=0.42	rho=0.36	Modified version of the Miyazawa-Jernigan transfer energy                        (Liwo, A., Oldziej, S., Pincus, M.R., Wawak, R.J., Rackovsky, S. and Scheraga,)
+BETM990101	R=0.4	rho=0.41	Modified version of the Miyazawa-Jernigan transfer energy                        (Betancourt,M.R. and Thirumalai,D.)
+KOLA930101	R=0.4	rho=0.43	Statistical potential derived by the quasichemical approximation                 (Kolinski, A., Godzik, A. and Skolnick, J.)
+ZHAC000106	R=0.39	rho=0.37	Environment-dependent residue contact energies (rows = coil, cols = coil)        (Zhang, C. and Kim, S.H.)
+ROBB790102	R=0.39	rho=0.43	Interaction energies derived from side chain contacts in the interiors of        (Robson, B. and Osguthorpe, D.J.)
+MIYS850102	R=0.37	rho=0.31	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+MIYS960101	R=0.37	rho=0.31	Quasichemical energy of transfer of amino acids from water to the protein        (Miyazawa, S. and Jernigan, R.L.)
+THOP960101	R=0.36	rho=0.35	Mixed quasichemical and optimization-based protein contact potential             (Thomas, P.D. and Dill, K.A.)
+BONM030101	R=0.32	rho=0.31	Quasichemical statistical potential for the antiparallel orientation of          (Boniecki, M., Rotkiewicz, P., Skolnick, J. and Kolinski, A.)
+MIYS960102	R=0.32	rho=0.39	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+MIYS990107	R=0.32	rho=0.38	Quasichemical energy of interactions in an average buried environment            (Miyazawa, S. and Jernigan, R.L.)
+SKOJ970101	R=0.3	rho=0.28	Statistical potential derived by the quasichemical approximation                 (Skolnick, J., Jaroszewski, L., Kolinski, A. and Godzik, A.)

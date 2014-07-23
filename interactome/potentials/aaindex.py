@@ -245,8 +245,9 @@ if __name__ == '__main__':
 
     index2 = AAINDEX_PATH + "aaindex2"
     index3 = AAINDEX_PATH + "aaindex3"
-    index_gon = "potential_3.index"
+    index_gon = "potential_1.index"
 
+    """
     # compare = ["BRYS930101", "MIYS850103", "MIYS960102", "MIYS990107", "KESO980102", "MOOG990101"]
     index3 = index_gon
     compare = [x[0] for x in aaindex23_get_list(index3)]
@@ -277,14 +278,15 @@ if __name__ == '__main__':
     # print "Top 50 pairs of correlating potentials ordered by Pearson R:"
     for i in range(len(sorted_list)):
         print sorted_list[i][1]
+    """
 
-    sys.exit(0)
+    # sys.exit(0)
     print "####################################"
 
     # accession_gon = "GONA00000"
 
     print "Analyzing potentials in ", index_gon
-    for idx in range(7):
+    for idx in range(2,14):
         accession_gon = "GONA0000{}".format(idx)
         print "ACCESSION:", accession_gon
         data_gon = aaindex23_get_data(accession_gon, index_gon)
@@ -310,7 +312,7 @@ if __name__ == '__main__':
                 pass
                 # print "skipping matrix", i[0]
         sorted_list = sorted(unsorted_list, key=operator.itemgetter(0), reverse=True)
-        print "Top 10 matching matrices ordered by Pearson R:"
-        for i in range(10):
+        print "Top 15 matching matrices ordered by Pearson R:"
+        for i in range(15):
             print sorted_list[i][1]
 
