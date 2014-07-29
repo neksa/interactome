@@ -1,8 +1,8 @@
-
 from itertools import islice
 from collections import defaultdict, namedtuple
 
-from benchmark import load_interactions, load_gene_protein_mapping
+from benchmark import load_interactions, load_gene_protein_mapping, load_HPA_filter_results
+
 
 def get_PINA_proteins(fname):
     pairs = set()
@@ -82,11 +82,17 @@ def main():
             "identicalB positiveB aln_lenB bs_lenB bs_coveredB bs_alignedB bs_identicalB bs_positiveB bs_contactsB bs_BLOSUMB bs_score1B " +
             "siteA siteB")
 
-    fname = "/Users/agoncear/projects/Interactome/Workflow/Alignments/matches_human_05_20.tab"
+    HPA_results_fname = "/Users/agoncear/projects/Interactome/Workflow/Coexpression/human_stringent_HPA.tab"
+    aln_fname = "/Users/agoncear/projects/Interactome/Workflow/Alignments/matches_human_05_20.tab"
+    aln_stringent = "/Users/agoncear/projects/Interactome/Workflow/Alignments/matches_human_05_20_stringent.tab"
     network = "/Users/agoncear/projects/Interactome/Workflow/Interactomes/stringent.tab"
     interactions = defaultdict(set)
-    with open(fname) as f, open(network, 'w') as o:
-        for line in islice(f, 1, None):
+    interaction_sites = defaultdict(lambda: [set(), set()])
+    with open(aln_fname) as f, open(network, 'w') as o_net, open(aln_stringent, 'w') as o_aln:
+        for i, line in enumerate(f):
+            if i == 0:
+                o_aln.write(line)
+                continue
             fields = line.strip().split("\t")
             if len(fields) != 39:
                 continue
@@ -117,6 +123,18 @@ def main():
                 continue
             #########################
 
+            siteA = set()
+            for site in I.siteA.split(';'):
+                s = site.split(',')
+                siteA.add(s[3] + s[4])
+
+            siteB = set()
+            for site in I.siteB.split(';'):
+                s = site.split(',')
+                siteB.add(s[3] + s[4])
+
+            #########################
+
             pair = I.queryA, I.queryB
             if I.queryA > I.queryB:
                 pair = I.queryB, I.queryA
@@ -127,19 +145,40 @@ def main():
             tpl = pdb + A + B
             print pair, I.template, tpl
             interactions[pair].add(tpl)
+            interaction_sites[pair][0] |= siteA
+            interaction_sites[pair][1] |= siteB
+            o_aln.write(line)
 
-        o.write("A\tB\tTemplates\tinPINA\tinVidal\tinPDB\tPDB\n")
+        HPA_results = load_HPA_filter_results(HPA_results_fname, strict=True)
+
+        o_net.write("A\tB\tTemplates\tinPINA\tinVidal\tHPA_supported\tPVH\tinPDB\tPDB\tsiteA\tsiteB\n")
         for pair, tpl in interactions.iteritems():
             inPINA = 1 if pair in PINA else 0
 
+            HPA_supported = 1 if HPA_results.get(pair, False) else 0
+
             A = uniprot_pdbs[pair[0]]
             B = uniprot_pdbs[pair[1]]
-            inPDB = 1 if A and B and A & B else 0
-            PDB = ";".join(A & B)
+            inPDB = 1 if A and B and A & B and pair[0] != pair[1] else 0
+            PDB = ''
+            if inPDB == 1:
+                PDB = ";".join(A & B)
 
             inVidal = 1 if pair in vidal_uniprot_interactions else 0
 
-            o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(pair[0], pair[1], ";".join(tpl), inPINA, inVidal, inPDB, PDB))
+            PVH = ""
+            if inPINA:
+                PVH += "P"
+            if inVidal:
+                PVH += "V"
+            if HPA_supported:
+                PVH += 'H'      
+
+            siteA, siteB = interaction_sites[pair]
+            siteA = ';'.join(siteA)
+            siteB = ';'.join(siteB)
+
+            o_net.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(pair[0], pair[1], ";".join(tpl), inPINA, inVidal, HPA_supported, PVH, inPDB, PDB, siteA, siteB))
 
 
 UniprotRec = namedtuple('UniprotRec', 'id accessions gene descr')
@@ -148,20 +187,24 @@ def iter_uniprot():
     i = ""
     rec = defaultdict(str)
     with open(fname) as f:
-        for line in f:
-            # l = line.strip()
-            l = line
+        for l in f:
             if l.startswith("//"):
-                if rec['OX'] != "NCBI_TaxID=9606;":
-                    continue
-                id_str = rec['ID'].split()[0]
-                # AC   P31946; A8K9K2; E1P616;
-                accessions = [ac[:-1] for ac in rec['AC'].strip().split()]
-                # GN   Name=YWHAB; Synonyms=YWHA1;
-                gene = rec['GN'].split(';')[0][5:-1]
-                # DE   RecName: Full=HLA class I histocompatibility antigen, A-1 alpha chain;
-                descr = rec['DE'].strip().split("=")[1][-1]
-                yield UniprotRec._make(id_str, accessions, gene, descr)
+                if rec['OX'].strip() == "NCBI_TaxID=9606;":
+                    id_str = rec['ID'].split()[0]
+                    # AC   P31946; A8K9K2; E1P616;
+                    accessions = [ac[:-1] for ac in rec['AC'].strip().split()]
+                    # GN   Name=YWHAB; Synonyms=YWHA1;
+                    gene = rec['GN'].split(';')[0][5:]
+                    # DE   RecName: Full=HLA class I histocompatibility antigen, A-1 alpha chain;
+                    descr = ''
+                    if 'DE' in rec:
+                        for d in rec['DE'].split("\n"):
+                            if d.startswith("RecName"):
+                                # print "SSS", d.split("=")
+                                descr = d.split("=")[1][:-1]
+                    uniprot_rec = UniprotRec._make((id_str, accessions, gene, descr))
+                    print uniprot_rec
+                    yield uniprot_rec
                 i = ""
                 rec = defaultdict(str)
                 continue
@@ -170,7 +213,9 @@ def iter_uniprot():
                 data = l[5:]
                 if nid != "  ":
                     i = nid
-                rec[i] = data
+                if i not in ('DE', 'GN', 'ID', 'OX', 'AC'):
+                    continue
+                rec[i] += data
 
 
 def load_uniprot_mapping():
@@ -189,8 +234,8 @@ def load_uniprot_mapping():
         for line in islice(f, 1, None):
             id_str, accessions, gene, descr = line.strip().split("\t")
             accessions = accessions.split(";")
-            rec = UniprotRec._make(id_str, accessions, gene, descr)
-            if len(accessions > 1):
+            rec = UniprotRec._make((id_str, accessions, gene, descr))
+            if len(accessions) > 1:
                 new_id = accessions[0]
                 for ac in islice(accessions, 1, None):
                     old_new_ids[ac] = new_id
@@ -198,10 +243,25 @@ def load_uniprot_mapping():
     return records, old_new_ids
 
 
+def get_clone_gene_names(fname):
+    import csv
+    genes = set()
+    with open(fname, 'rU') as f:
+        clonereader = csv.reader(f, delimiter=',', quotechar='"')
+        for row in clonereader:
+            symbol, aliases, llid = row[8:11]
+            genes.add(symbol)
+            for name in aliases.split("||"):
+                if 1 < len(name) < 10:
+                    genes.add(name)
+    return genes
+
+
 def descr():
     node_props_fname = "/Users/agoncear/projects/Interactome/Workflow/Interactomes/uniprot_nodes.tab"
     vidal_fname = "/Users/agoncear/data/Vidal/ALL.tsv"
     mapping_fname = "/Users/agoncear/data/Vidal/unique_gene_ids_mapped.tab"
+    clones_fname = "/Users/agoncear/data/Uetz/human cDNA collection pDonr223 Vidal-Koegl.csv"
 
     gene_proteins, protein_genes = load_gene_protein_mapping(mapping_fname)
     records, old_new_ids = load_uniprot_mapping()
@@ -210,18 +270,29 @@ def descr():
     for gA, gB in vidal:
         pA = gene_proteins[gA]
         pB = gene_proteins[gB]
+        # if len(pA) > 1:
+        #     print gA, pA
         for p in pA | pB:
             new_id = old_new_ids.get(p, p)  # use id as is if no mapping
+            # if new_id != p:
+            #     print "ID"
+            # else:
+            #     print "OK"
             vidal_proteins.add(new_id)
 
+    clones = get_clone_gene_names(clones_fname)
+
     with open(node_props_fname, 'w') as o:
-        o.write("uniprot\tgene\tdescr\tinVidal\n")
+        o.write("uniprot\tgene\tdescr\tinVidalPPI\tinClones\n")
         for ac, rec in records.iteritems():
-            inVidal = 1 if ac in vidal_proteins else 0
+            inVidalPPI = 1 if ac in vidal_proteins else 0
+            # if rec.gene == 'RASA':
+            #     print ac, rec.gene, rec.gene in clones
+            inClones = 1 if rec.gene in clones else 0
             for ac in rec.accessions:
-                o.write("{}\t{}\t{}\t{}\n".format(ac, rec.gene, rec.descr, inVidal))
+                o.write("{}\t{}\t{}\t{}\t{}\n".format(ac, rec.gene, rec.descr, inVidalPPI, inClones))
 
 
 if __name__ == '__main__':
-    # main()
+    main()
     descr()
