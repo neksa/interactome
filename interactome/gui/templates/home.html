@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+<title>PPI GUI</title>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script>
+$( document ).ready(function() {
+    console.log( "document loaded" );
+
+    $('#reload_btn').on('click', function() {
+        // console.log('clicked');
+        $.get("/ppi/", function( response ) {
+            // console.log( response.pairs ); // server response
+            pairs = response.pairs;
+            $('#results').text("");
+            items = Array()
+            for ( var i = 0; i < pairs.length; i++ ) {
+                items.push( "<li> " + pairs[i][0] + " - " + pairs[i][1] + "</li>" );
+            }
+
+            $('#results').append( items.join( "\n" ) );
+        });
+    });
+
+});
+
+
+</script>
+</head>
+<body>
+
+Nothing here.
+<button id="reload_btn">Reload data</button>
+<div id="results"></div>
+
+</body>
+<html>
+
