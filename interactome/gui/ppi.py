@@ -35,9 +35,8 @@ def main_page():
     #     url_for('check') + \
     #     "' method=GET>P:<input name=P type=text><p>Q:<input name=Q type=text><input type='submit' value='Check'></input></form>"
 
-
 def iter_matches():
-    fname = "/Users/agoncear/projects/Interactome/Workflow/Alignments/matches_human_05_20_stringent.tab"
+    fname = 'Interactome\matches_human_05_20_stringent.tab'
     with open(fname) as f:
         for line in islice(f, 1, None):
             fields = line.strip().split("\t")

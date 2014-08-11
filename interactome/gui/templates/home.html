@@ -2,7 +2,13 @@
 <html>
 <head>
 <title>PPI GUI</title>
-<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<h3> Enter 2 proteins to search for the interaction or browse the list of interactions.<h3>
+<script 
+src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js">
+from Tkinter import *
+</script>
+
+
 <script>
 $( document ).ready(function() {
     console.log( "document loaded" );
@@ -16,12 +22,13 @@ $( document ).ready(function() {
             items = Array()
             for ( var i = 0; i < pairs.length; i++ ) {
                 items.push( "<li> " + pairs[i][0] + " - " + pairs[i][1] + "</li>" );
+                string=
+                <a href="http://www.proteinatlas.org/search/">
             }
 
             $('#results').append( items.join( "\n" ) );
         });
     });
-
 });
 
 
@@ -35,4 +42,3 @@ Nothing here.
 
 </body>
 <html>
-
