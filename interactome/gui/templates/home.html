@@ -2,43 +2,53 @@
 <html>
 <head>
 <title>PPI GUI</title>
-<h3> Enter 2 proteins to search for the interaction or browse the list of interactions.<h3>
 <script 
 src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js">
 from Tkinter import *
 </script>
-
-
 <script>
 $( document ).ready(function() {
     console.log( "document loaded" );
-
-    $('#reload_btn').on('click', function() {
-        // console.log('clicked');
-        $.get("/ppi/", function( response ) {
-            // console.log( response.pairs ); // server response
-            pairs = response.pairs;
-            $('#results').text("");
-            items = Array()
-            for ( var i = 0; i < pairs.length; i++ ) {
-                items.push( "<li> " + pairs[i][0] + " - " + pairs[i][1] + "</li>" );
-                string=
-                <a href="http://www.proteinatlas.org/search/">
-            }
-
-            $('#results').append( items.join( "\n" ) );
-        });
+    $.get("/ppi/", function( response ) {
+        // console.log( response.pairs ); // server response
+        pairs = response.pairs;
+        $('#results').text("");
+        items = Array()
+        for ( var i = 0; i < pairs.length; i++ ) {
+            items.push( "<li> <a href='/interface/" + pairs[i][0] + "/" + pairs[i][1] +  "/'>" + pairs[i][0] + " - " + pairs[i][1] + "</a></li>" );
+        }
+        $('#results').append( items.join( "\n" ) );
     });
+    $("#submit_btn").on('click', function(){
+        search="/interface/"+ $("#in1").val() + "/" + $("#in2").val() + "/";
+        window.location=search;
+    });
+
 });
-
-
 </script>
+
+<script>
+/*$(document).ready(function(){
+  $("input").focus(function(){
+    $(this).css("background-color","#0ffffc");
+  });
+   $("input").blur(function(){
+    $(this).css("background-color","#ffffff");
+  });
+ });
+*/
+</script>
+
 </head>
 <body>
 
-Nothing here.
-<button id="reload_btn">Reload data</button>
-<div id="results"></div>
+<p>Search for 2 proteins</p>
+ <p></p>
+<input id="in1" type="text">
+<input id="in2" type="text">
+<button id="submit_btn">Submit</button>
+<div id="results">Loading protein pairs...</div>
+ <p></p>
 
 </body>
 <html>

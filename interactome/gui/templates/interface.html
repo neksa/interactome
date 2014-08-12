@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+<title>PPI GUI</title>
+<script 
+src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js">
+from Tkinter import *
+</script>
+<script>
+$( document ).ready(function() {
+    console.log( "document loaded" );
+    $.get("/ppi/{{p1}}/{{p2}}/", function( response ) {
+        // console.log( response.pairs ); // server response
+        interfaces = response.interfaces;
+        for ( var i = 0; i < interfaces.length; i++ ) {
+            $('#interfaces').append("<option value=" + i +">" + interfaces[i] + "</option>");
+        }
+        $('#interfaces').change();
+    });
+
+
+    $("#interfaces").on('change', function(){
+        console.log("interface selected: "  + $(this).val());
+
+        $.get("/ppi/{{p1}}/{{p2}}/" + $(this).val()+ "/alignment", function(aln){
+            items = Array()
+            console.log(aln.siteA)
+            for ( var i = 0; i < aln.siteA.length; i++ ){
+                items.push(aln.siteA[i].tresindex);
+            }
+            $('#alignment').append( items.join( "\n" ) );
+        });
+
+    });
+
+});
+</script>
+
+</head>
+<body>
+
+ <p></p>
+ <p>Showing interfaces for {{p1}} and {{p2}} </p>
+ <table id="aln_table"></table>
+<div id="interface_list"><select id="interfaces"></select></div>
+<div id="alignment"></div>
+<div id="properties"></div>
+<div id="structure"></div>
+ <p></p>
+
+</body>
+<html>
