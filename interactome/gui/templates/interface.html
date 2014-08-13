@@ -2,13 +2,19 @@
 <html>
 <head>
 <title>PPI GUI</title>
-<script 
-src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js">
-from Tkinter import *
-</script>
-<script>
+<script  src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js"></script>
+
+<script type="text/javascript" src="http://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js"></script>
+<script type="text/javascript">
+// last update 2/18/2014 2:10:06 PM
+
+
+
+////////////////////////////////////////////////////////////////////
 $( document ).ready(function() {
     console.log( "document loaded" );
+
+
     $.get("/ppi/{{p1}}/{{p2}}/", function( response ) {
         // console.log( response.pairs ); // server response
         interfaces = response.interfaces;
@@ -23,29 +29,138 @@ $( document ).ready(function() {
         console.log("interface selected: "  + $(this).val());
 
         $.get("/ppi/{{p1}}/{{p2}}/" + $(this).val()+ "/alignment", function(aln){
-            items = Array()
             console.log(aln.siteA)
-            for ( var i = 0; i < aln.siteA.length; i++ ){
-                items.push(aln.siteA[i].tresindex);
-            }
-            $('#alignment').append( items.join( "\n" ) );
+            tab1=make_table(aln.siteA);
+            tab2=make_table(aln.siteB);
+            $('#alignment').text("");
+            $('#alignment').append(tab1);
+             $('#alignment').append('<br>');
+            $('#alignment').append(tab2);
+           
         });
 
-    });
+        $.get("/ppi/{{p1}}/{{p2}}/"+ $(this).val() + "/", function(interface_props){
+            console.log("showing interface properties");
+            // console.log(interface_props.interface.aln_lenA);
+            console.log(interface_props);
+            $('#properties').append("alignment length: " + interface_props.interface.aln_lenA);
 
+            var pdb_id = interface_props.interface.template.split("|")[0];
+            // INIT JSMOL
+            var jmolStartupScript = 'load "http://www.rcsb.org/pdb/Viewers/jsmol.jsp?id=' + pdb_id + '&encoding=base64&bionumber=1";';
+            jmolStartupScript += 'set defaultStructureDSSP true; set measurementUnits ANGSTROMS; set chaincasesensitive; select all;  spacefill off; wireframe off; backbone off; cartoon on; color cartoon structure; color structure;  select (ligand,ATP,ADP,AMP);wireframe 0.16;spacefill 0.5; color cpk ; select all; model 0;set antialiasDisplay true; ';
+
+            var jmolApplet0; // set up in HTML table, below
+
+            // logic is set by indicating order of USE -- default is HTML5 for this test page, though
+
+            var s = document.location.search;
+
+            // Developers: The _debugCode flag is checked in j2s/core/core.z.js, 
+            // and, if TRUE, skips loading the core methods, forcing those
+            // to be read from their individual directories. Set this
+            // true if you want to do some code debugging by inserting
+            // System.out.println, document.title, or alert commands
+            // anywhere in the Java or Jmol code.
+
+            Jmol._debugCode = (s.indexOf("debugcode") >= 0);
+
+            jmol_isReady = function(applet) {
+                document.title = (applet._id + " - Jmol " + ___JmolVersion)
+                Jmol._getElement(applet, "appletdiv").style.border="1px solid blue"
+            }       
+
+            var Info = {
+                width: 300,
+                height: 300,
+                debug: false,
+                color: "0xFFFFFF",
+                addSelectionOptions: true,
+                use: "HTML5",   // JAVA HTML5 WEBGL are all options
+                j2sPath: "http://chemapps.stolaf.edu/jmol/jsmol/j2s", // this needs to point to where the j2s directory is.
+                jarPath: "http://chemapps.stolaf.edu/jmol/jsmol/java",// this needs to point to where the java directory is.
+                jarFile: "JmolAppletSigned.jar",
+                isSigned: true,
+                script: jmolStartupScript,
+                serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+                readyFunction: jmol_isReady,
+                disableJ2SLoadMonitor: true,
+              disableInitialConsole: true,
+              allowJavaScript: true
+                //defaultModel: "$dopamine",
+                //console: "none", // default will be jmolApplet0_infodiv, but you can designate another div here or "none"
+            }
+            var lastPrompt=0;
+
+            $("#jsmol_div").html(Jmol.getAppletHtml("jmolApplet0", Info))
+
+
+        });
+
+
+
+
+    });
+    function make_table(site)
+    {
+        var tab = $('<table>');   
+        var row= $('<tr>');
+        for (var i = 0; i < site.length; i++ ){
+            var col= $('<td>');
+            col.append(site[i].tresindex);
+            row.append(col);
+        } 
+        tab.append(row);
+
+        var row= $('<tr>');
+        for (var i = 0; i < site.length; i++ ){
+            var col= $('<td>');
+            col.append(site[i].tresn);
+            row.append(col);
+        } 
+        tab.append(row);
+
+        var row= $('<tr>');
+        for (var i = 0; i < site.length; i++ ){
+            var col= $('<td>');
+            col.append(site[i].qresn);
+            row.append(col);
+        } 
+        tab.append(row);
+
+        var row= $('<tr>');
+        for (var i = 0; i < site.length; i++ ){
+            var col= $('<td>');
+            col.append(site[i].qresindex);
+            row.append(col);
+        } 
+        tab.append(row);
+
+           var row= $('<tr>');
+        for (var i = 0; i < site.length; i++ ){
+            var col= $('<td>');
+            col.append(site[i].num_contacts);
+            row.append(col);
+        } 
+        tab.append(row);
+        return tab;
+    }
 });
+
 </script>
 
 </head>
 <body>
-
- <p></p>
- <p>Showing interfaces for {{p1}} and {{p2}} </p>
- <table id="aln_table"></table>
+<h3>Showing interfaces for {{p1}} and {{p2}} </h3>
 <div id="interface_list"><select id="interfaces"></select></div>
+<br>
 <div id="alignment"></div>
+<hr>
 <div id="properties"></div>
-<div id="structure"></div>
+<div id="structure">
+    <div id="jsmol_div">
+    </div>
+</div>
  <p></p>
 
 </body>

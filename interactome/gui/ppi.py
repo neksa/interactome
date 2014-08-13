@@ -34,14 +34,14 @@ def get_list_of_protein_interactions():
 
 @app.route("/ppi/<p1>/<p2>/") #if accessed without trailing slash, will redirect to page w/ slash. 
 def get_interfaces(p1, p2):
-    interfaces = ["{} {} {} {} {} {} {} {} {} {}".format(m.queryA, m.queryB, m.template, m.template_type, m.score_template_full, m.score_template, m.score, m.scaled_score, m.aln_lenA, m.aln_lenB) for m in ifilter(lambda x: filter_protein(x, p1, p2), iter_matches())]
+    interfaces = ["{} {} {}".format(m.template, m.template_type, m.score_template_full) for m in ifilter(lambda x: filter_protein(x, p1, p2), iter_matches())]
     # return str(len(interfaces))
     return jsonify(interfaces=interfaces)
 
-@app.route("/ppi/<p1>/<p2>/<interfaceID>/")
+@app.route("/ppi/<p1>/<p2>/<int:interfaceID>/")
 def get_interface_information(p1, p2, interfaceID): 
-    interfaces = [m.__dict__ for m in ifilter(lambda x: filter_protein(x, p1, p2), iter_matches())]
-    return jsonify(interfaces= interfaces)
+    interface = [m.__dict__ for m in ifilter(lambda x: filter_protein(x, p1, p2), iter_matches())][interfaceID]
+    return jsonify(interface= interface)
 
 @app.route("/ppi/<p1>/<p2>/<int:interfaceID>/alignment")
 def get_interface_alignment(p1, p2, interfaceID): 
