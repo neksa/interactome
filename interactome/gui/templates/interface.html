@@ -43,11 +43,29 @@ $( document ).ready(function() {
             console.log("showing interface properties");
             // console.log(interface_props.interface.aln_lenA);
             console.log(interface_props);
-            $('#properties').append("alignment length: " + interface_props.interface.aln_lenA);
+            $('#properties').append("{{p1}}:<br>");
+            $('#properties').append("length: " + interface_props.interface.aln_lenA + '<br>');
+            var total_percentA=(parseFloat(interface_props.interface.identicalA)/parseFloat(interface_props.interface.aln_lenA)).toFixed(4)*100;
+            $('#properties').append("total % identity: " + total_percentA.toString() + "%<br>");
+            $('#properties').append("binding site length: " + interface_props.interface.bs_lenA + '<br>');
+            var bs_coverage_percentA=(parseFloat(interface_props.interface.bs_coveredA)/parseFloat(interface_props.interface.bs_lenA)).toFixed(4)*100;
+            $('#properties').append("binding site % coverage: " + bs_coverage_percentA.toString() + "%<br>");
+            var bs_percentA=(parseFloat(interface_props.interface.bs_identicalA)/parseFloat(interface_props.interface.bs_coveredA)).toFixed(4)*100;
+            $('#properties').append("binding site % identity: " + bs_percentA.toString() + "%<br>");
+            $('#properties').append("<br>{{p2}}:<br>");
+            $('#properties').append("length: " + interface_props.interface.aln_lenB + '<br>');
+            var total_percentB=(parseFloat(interface_props.interface.identicalB)/parseFloat(interface_props.interface.aln_lenB)).toFixed(4)*100;
+            $('#properties').append("total % identity: " + total_percentB.toString() + "%<br>");
+            $('#properties').append("binding site length: " + interface_props.interface.bs_lenB + '<br>');
+            var bs_coverage_percentB=(parseFloat(interface_props.interface.bs_coveredB)/parseFloat(interface_props.interface.bs_lenB)).toFixed(4)*100;
+            $('#properties').append("binding site % coverage: " + bs_coverage_percentB.toString() + "%<br>");
+            var bs_percentB=(parseFloat(interface_props.interface.bs_identicalB)/parseFloat(interface_props.interface.bs_coveredB)).toFixed(4)*100;
+            $('#properties').append("binding site % identity: " + bs_percentB.toString() + "%<br>");
 
             var pdb_id = interface_props.interface.template.split("|")[0];
             // INIT JSMOL
             var jmolStartupScript = 'load "http://www.rcsb.org/pdb/Viewers/jsmol.jsp?id=' + pdb_id + '&encoding=base64&bionumber=1";';
+       //     jmolStartupScript += 'quaternion{0.48858002,0.82936156,-0.26843423,-0.03730948};;;set waitForMoveTo FALSE;set defaultStructureDSSP true; set measurementUnits ANGSTROMS; set chaincasesensitive; select all;  spacefill off; wireframe off; backbone off; cartoon on; color cartoon structure; color structure;  select (ligand,ATP,ADP,AMP);wireframe 0.16;spacefill 0.5; color cpk ; select all; model 0;set antialiasDisplay true; ';
             jmolStartupScript += 'set defaultStructureDSSP true; set measurementUnits ANGSTROMS; set chaincasesensitive; select all;  spacefill off; wireframe off; backbone off; cartoon on; color cartoon structure; color structure;  select (ligand,ATP,ADP,AMP);wireframe 0.16;spacefill 0.5; color cpk ; select all; model 0;set antialiasDisplay true; ';
 
             var jmolApplet0; // set up in HTML table, below
@@ -93,7 +111,6 @@ $( document ).ready(function() {
             var lastPrompt=0;
 
             $("#jsmol_div").html(Jmol.getAppletHtml("jmolApplet0", Info))
-
 
         });
 
