@@ -15,7 +15,7 @@ def get_pdb_path():
 
 
 def get_results_path():
-    return "/Users/agoncear/projects/Interactome/Workflow/Interfaces"
+    return "/Users/agoncear/projects/Interactome/Workflow/Interfaces.new"
 
 
 def get_threshold():
@@ -25,16 +25,13 @@ def get_threshold():
 
 def extract_contacts(params):
     code, gz_filename = params
-
-    print "Find contacts:", code
-    # return
-
+    # print "Find contacts:", code
     mmcif = mmCifFile(get_pdb_path(), code)
-    iface = Interface(get_results_path(), get_threshold())
-
-    iteratoms = mmcif.iterAtoms()
-    n = iface.findContacts(code, iteratoms)
-
+    meta = mmcif.getMetaData()
+    if meta.method.strip() in ('X-RAY DIFFRACTION', 'SOLID-STATE NMR', 'SOLUTION NMR'):
+        iface = Interface(get_results_path(), get_threshold())
+        iteratoms = mmcif.iterAtoms()
+        n = iface.findContacts(code, iteratoms)
     # print code, "OK"
     # Extract mapping:
     chain_protein_mapping = mmcif.getChainProteinMapping()
@@ -54,7 +51,6 @@ def get_mapping_fname(code):
             pass
     mapping = "{}/{}_chain_protein_mapping.tab".format(results_dir, code)
     return mapping
-
 
 # def extract_protein_mapping(params):
 #     code, gz_filename = params
@@ -88,23 +84,41 @@ def isNMR(params):
     # if params[0] == "2aff": return True
     # return False
     m = isNMR.method.get(params[0])
-    if m is None: return False
-    if m == "NMR": return True
+    if m is None:
+        return False
+    if m == "NMR":
+        return True
     return False
 
 
-if __name__ == '__main__':
+# def accepted_method(params):
+#     """
+#     ELECTRON CRYSTALLOGRAPHY    .
+#     ELECTRON MICROSCOPY .
+#     EPR EPR only as a supporting method
+#     FIBER DIFFRACTION   .
+#     FLUORESCENCE TRANSFER   FLUORESCENCE TRANSFER only as a supporting method
+#     INFRARED SPECTROSCOPY   IR and FTIR only as supporting methods
+#     NEUTRON DIFFRACTION .
+#     POWDER DIFFRACTION  .
+#     SOLID-STATE NMR .
+#     SOLUTION NMR    .
+#     SOLUTION SCATTERING .
+#     THEORETICAL MODEL   THEORETICAL MODEL only as a supporting method
+#     X-RAY DIFFRACTION
+#     """
+#     pass
 
+
+if __name__ == '__main__':
     mmcif = mmCifFile(get_pdb_path())
     pool = mp.Pool(8, init_worker)
-
     # isNMR.method = {}
     # with open(get_pdb_path()+"/derived_data/pdb_entry_type.txt", 'r') as f:
     #     for line in f:
     #         code, entities, method = line.strip().split()
     #         isNMR.method[code] = method
     # pool.imap_unordered(extract_contacts, ifilter(isNMR, mmcif.listAll()))
-
     pool.imap_unordered(extract_contacts, mmcif.listAll())
     # pool.imap_unordered(extract_protein_mapping, mmcif.listAll())
 
