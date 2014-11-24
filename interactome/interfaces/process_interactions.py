@@ -1,4 +1,6 @@
 """
+STEP III. Aggregation
+
 Process all interactions
 Write a dataset for residue-residue contacts, where A-B and B-A represent the same thing
 Calculate the number of contacts beteen heavy atoms given Calpha threshold.
@@ -9,20 +11,19 @@ Calculate the number of contacts beteen heavy atoms given Calpha threshold.
 
 """
 import fnmatch
-import itertools
 import os
 from collections import defaultdict
 from non_redundant_filter import NRFilter
 
 aa = ["ALA", "LEU", "PRO", "GLY", "ASP", "ASN", "TYR", "HIS", "GLU", "CYS", "PHE", "VAL", "ILE", "ARG", "THR", "LYS", "SER", "GLN", "MET", "TRP"]
-backbone = ("N","CA","C","O","OXT")
+backbone = ("N", "CA", "C", "O", "OXT")
 
-def process_interactions():
+
+def process_interactions(ha_distance_cutoff=4.0):
     NR = NRFilter()
 
-    mode = 'w' # a
+    mode = 'w'  # a
     with open("aa-contacts.tab", mode) as o1, open("aa-distances.tab", mode) as o2, open("binary_interactions.tab", mode) as o3:
-
         for root, dirnames, filenames in os.walk("results/"):
             for filename in fnmatch.filter(filenames, '*.int'):
                 pdb = ""
@@ -30,12 +31,7 @@ def process_interactions():
                 fname_int = root + "/" + filename
 
                 if not NR.isNR(pdb):
-                    # print "NR skip", pdb
                     continue
-
-                # print pdb
-
-                # print fname_int
                 with open(fname_int, 'r') as f:
                     # demo calc:
                     # A - X  1 .
@@ -63,9 +59,10 @@ def process_interactions():
                             continue
 
                         d12 = float(d12)
-                        dCA12 = float (dCA12)
+                        dCA12 = float(dCA12)
 
-                        if d12 > 4.0: continue
+                        if d12 > ha_distance_cutoff:
+                            continue
 
                         if not NR.isNR(pdb, chain1):
                             continue
@@ -110,7 +107,6 @@ def process_interactions():
                             #     if 10.0 < dCA12 < 11.0:
                             #         print line,
 
-
                         # if res == "ASP_LYS":
                         #     atm = None
                         #     if (atm1 == "NZ" and atm2 == "OD2") or (atm1 == "OD2" and atm2 == "NZ"):
@@ -138,13 +134,13 @@ def process_interactions():
 
                         # print res, d12, dCA12
                         o2.write("{}\t{}\t{}\n".format(res, d12, dCA12))
-                    
+
                     # repeat writing counter for the last residue, if there is anything there
                     for residue_interaction, (counter, d) in contact_counter.iteritems():
                         if counter > 0:
                             pair = residue_interaction[0]
                             o1.write("{}\t{}\t{}\n".format(pair, counter, d))
-                        # o1.write("{}\t{}\t{}\n".format(res, contact_counter, dCA12)) 
+                        # o1.write("{}\t{}\t{}\n".format(res, contact_counter, dCA12))
                         # pass
 
 

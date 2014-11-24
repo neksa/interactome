@@ -1,4 +1,6 @@
 """
+STEP II
+
 1. Load all interface definitions from *.int files
 2. Extract residue lists for each side of the interface
 3. Process all pair of residues for each interface and save the following data:
@@ -13,7 +15,7 @@ import math
 import random
 import numpy as np
 import fnmatch
-import itertools
+# import itertools
 import os
 import string
 from collections import defaultdict, namedtuple
@@ -21,7 +23,9 @@ from non_redundant_filter import NRFilter
 
 
 aa = ["ALA", "LEU", "PRO", "GLY", "ASP", "ASN", "TYR", "HIS", "GLU", "CYS", "PHE", "VAL", "ILE", "ARG", "THR", "LYS", "SER", "GLN", "MET", "TRP"]
-backbone = ("N","CA","C","O","OXT")
+extended_aa = 
+
+backbone = ("N", "CA", "C", "O", "OXT")
 Residue = namedtuple("Residue", "pdb chain resi resn Ca N C O")
 
 
@@ -29,7 +33,6 @@ def write_interfaces():
     NR = NRFilter()
 
     with open("interfaces.tab", 'w') as o:
-
         for root, dirnames, filenames in os.walk("results/"):
             for filename in fnmatch.filter(filenames, '*.int'):
                 pdb = ""
@@ -39,14 +42,11 @@ def write_interfaces():
                 if not NR.isNR(pdb):
                     # print "NR skip", pdb
                     continue
-
                 # print pdb
-
                 interfaces = defaultdict(set)
 
                 # print fname_int
                 with open(fname_int, 'r') as f:
-
                     res = ""
                     dCA12 = 0.0
                     for i, line in enumerate(f):
@@ -60,7 +60,7 @@ def write_interfaces():
                             continue
 
                         d12 = float(d12)
-                        dCA12 = float (dCA12)
+                        dCA12 = float(dCA12)
 
                         # if d12 > 4.0: continue   # FILTER FOR 4A heavy-heavy threshold
 
@@ -99,7 +99,6 @@ def write_coordinates():
         for pdb, chains in interfaces.iteritems():
             with open("results/{}/{}.pdb".format(pdb[1:3], pdb), 'r') as f:
                 chain_suffix = 0
-                
                 for line in f:
                     if line.startswith("MODEL"):
                         model = int(line.strip().split()[1])
@@ -107,17 +106,19 @@ def write_coordinates():
                         chain_suffix = model - 1
 
                     if line.startswith("ATOM"):
-                        pdb_atomn = line[13:16].strip() # 'CA' # questions about strip!!! Calcium short vs CA
-                        pdb_atomi = int(line[4:12].strip())
+                        pdb_atomn = line[13:16].strip()  # 'CA' # questions about strip!!! Calcium short vs CA
+                        # pdb_atomi = int(line[4:12].strip())
                         pdb_resn = line[17:20].strip()
-                        pdb_chain = line[21:22] 
+                        pdb_chain = line[21:22]
                         pdb_resi = line[22:26].strip()
-                        pdb_element = line[76:78].strip()
+                        # pdb_element = line[76:78].strip()
 
                         # if pdb_element == "H": continue # skip all hydrogen atoms
                         # if pdb_resn == "UNK": continue  # skip unknown residues
-                        if line[16] in string.letters: continue # skip atoms with letters in atom numbers
-                        if line[26] in string.letters: continue # skip atoms with letters in residue numbers
+                        if line[16] in string.letters:
+                            continue  # skip atoms with letters in atom numbers
+                        if line[26] in string.letters:
+                            continue  # skip atoms with letters in residue numbers
 
                         chain = pdb_chain
                         if chain_suffix > 0:
@@ -134,7 +135,6 @@ def write_coordinates():
                             # print "sk", pdb, pdb_resi, pdb_resn
                             x, y, z = [float(line[30+8*i:38+8*i]) for i in range(3)]
                             o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(pdb, chain, pdb_resi, pdb_resn, pdb_atomn, x, y, z))
-
 
                         # if pdb_atomn == "CA":
                         #     residues_with_CA.add((chain, pdb_resi))
