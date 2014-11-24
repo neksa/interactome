@@ -27,7 +27,6 @@ aa_short = "ALPGDNYHECFVIRTKSQMW"
 backbone = ("N", "CA", "C", "O", "OXT")
 Residue = namedtuple("Residue", "pdb chain resi resn Ca N C O")
 
-
 # def write_interfaces():
 #     NR = NRFilter()
 

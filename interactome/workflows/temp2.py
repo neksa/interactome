@@ -5,13 +5,15 @@ from itertools import islice
 from interactome.structures.complexes import Complexes
 from collections import defaultdict
 
+
 def pdb_proteins(pdb_path, fname):
     # chain, m.chain_author, m.uniprot, m.begin, m.end
     pdb_uniprot = defaultdict(list)
     chain_author_to_mmcif = {}
 
     try:
-        with open(fname, 'r') as f: pass
+        with open(fname, 'r') as f:
+            pass
     except:
         try:
             with open(fname, 'w') as o:
@@ -53,7 +55,7 @@ def protein_genes():
     # pdb_uniprot_fname = d + "pdb_uniprot_chain_map.lst.2"
     uniprot_gene = defaultdict(list)
     # pdb_uniprot = defaultdict(list)
-    with open(uniprot_gene_fname) as f1:#, open(pdb_uniprot_fname) as f2:
+    with open(uniprot_gene_fname) as f1:  # , open(pdb_uniprot_fname) as f2:
         for line in f1:
             # print line
             fields = line.strip().split()
@@ -86,23 +88,28 @@ def main():
     pdb_proteins_fname = struct_path + "/pdb_proteins.tab"
     template_analysis_fname = struct_path + "/template_analysis.tab"
 
-    print "Loading PDB-Uniprot mapping..."
-    pdb_uniprot = pdb_proteins(pdb_path, pdb_proteins_fname)[0]
-    
     # print "Loading Uniprot-Entrez Gene ID mapping..."
     # uniprot_gene = protein_genes()
 
     complexes = Complexes()
     print "Loading Complexes-templates..."
-    templates = complexes.loadTemplates(pdb_templates_fname)#, mapping)
+    try:
+        with open(pdb_templates_fname):
+            pass
+    except IOError:
+        complexes.collectTemplates(pdb_path, pdb_templates_fname)
+
+    templates = complexes.loadTemplates(pdb_templates_fname)  # , mapping)
     # print "Info: Number of templates (PDB+chain+chain) = ", len(templates.keys())
 
+    print "Loading PDB-Uniprot mapping..."
+    pdb_uniprot = pdb_proteins(pdb_path, pdb_proteins_fname)[0]
 
     with open(template_analysis_fname, 'w') as o:
         o.write("template\tpdb\tA\tB\tprot_A\tprot_B\tcomplex_type\tbs_lenA\tncontactsA\tbs_lenB\tncontactsB\n")
         for (pdb, A, B), (siteA, siteB) in templates:
-            pdb_chain_A = pdb.upper() + '|' + A.split("_",1)[0]
-            pdb_chain_B = pdb.upper() + '|' + B.split("_",1)[0]
+            pdb_chain_A = pdb.upper() + '|' + A.split("_", 1)[0]
+            pdb_chain_B = pdb.upper() + '|' + B.split("_", 1)[0]
             template = pdb.upper() + '|' + A + '|' + B
             # print pdb, A, B, "???"
 

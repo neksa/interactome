@@ -8,14 +8,45 @@ Benchmarking the quality of modeling by (re)modeling the human dimers
 # import signal
 # import time
 # import math
+# import pprint
 import copy
-import pprint
 from itertools import islice
 from collections import defaultdict, namedtuple
 
 from interactome.sequences.blast import BLASTReport
 from interactome.structures.complexes import Complexes  # , SiteResidue
 from interactome.sequences.BLOSUM import read_BLOSUM_matrix
+from interactome.workflows.temp2 import pdb_proteins
+
+
+def convert_alignments(in_fname, out_fname):
+    pdb_path = "/Users/agoncear/projects/Interactome/Workflow/Interfaces/"
+
+    print "Loading PDB-Uniprot mapping..."
+    pdb_proteins_fname = "/Users/agoncear/projects/Interactome/Workflow/Structures/pdb_proteins.tab"
+    pdb_uniprot, chain_author_to_mmcif = pdb_proteins(pdb_path, pdb_proteins_fname)
+    # print chain_author_to_mmcif
+    # sys.exit(0)
+
+    with open(in_fname, 'r') as f, open(out_fname, 'w') as o:
+        # for line in islice(f, 1, None):
+        #query   hit     score   bit_score       evalue  identical       positive        gaps    align_len       qfrom   qto     hfrom   hto     qseq    hseq
+        for i, line in enumerate(f):
+            if i == 0:
+                o.write(line)
+                continue
+            fields = line.split("\t")
+            hit = fields[1]
+            pdb, chain_author = hit.split("_")
+            chain_mmcif = chain_author_to_mmcif.get((pdb, chain_author), None)
+            # print chain_author, chain_mmcif
+            if chain_mmcif is None:
+                print "PDB chain not found in Biounit PDB-MMCIF mapping. Skipping BLAST hit", pdb, chain_author
+                continue
+                # chain_mmcif = chain_author
+            fields = list(fields)
+            fields[1] = pdb + "|" + chain_mmcif
+            o.write("\t".join(fields))
 
 
 def align(pdbchain, qseq, hseq, qfrom, hfrom, sites):
@@ -52,8 +83,10 @@ def align(pdbchain, qseq, hseq, qfrom, hfrom, sites):
                 qresi[site_index] = q
         except:
             pass
-        if qa != '-': q += 1
-        if ha != '-': h += 1
+        if qa != '-':
+            q += 1
+        if ha != '-':
+            h += 1
     return zip(aln, qresi)
 
 
@@ -91,16 +124,19 @@ def binding_site_alignments(fname_interfaces, fname_blast, fname_blast_processed
             identity = int(round(float(fields[5])*100.0 / float(fields[8]), 0))  # percent identity = identical / align_len
             fields.append(identity)
             report = BLASTReport._make(fields)
+            # print report
 
-            if not (15 <= identity):
-                continue
-            if fields[8] < 25:
-                continue  # report.align_len
-            if fields[4] > 0.001:
-                continue  # report.evalue
+            # THRESHOLDS:
+            # if not (15 <= identity):
+            #     continue
+            # if fields[8] < 25:
+            #     continue  # report.align_len
+            # if fields[4] > 0.001:
+            #     continue  # report.evalue
 
             sites = tpls[report.hit]
             if len(sites) == 0:
+                print "bs_alignments: No templates for" + report.hit
                 continue
 
             for chain, site in sites:
@@ -113,6 +149,8 @@ def binding_site_alignments(fname_interfaces, fname_blast, fname_blast_processed
                     s = site[i]
                     aligned_bs.append("{},{},{},{},{}".format(s.resn, s.seqresi, s.ncontacts, aln, resi))
                 str_site = ";".join(aligned_bs)
+
+                # THRESHOLD: at least 3 aligned residues on the binding site
                 if overlap < 3:
                     continue
 
@@ -188,7 +226,7 @@ def merge_bs_alignments(fname_in, fname_out):
             positive = int(positive)
             aln_len = int(aln_len)
             residues = []
-            # print query, template, 
+            # print query, template,
             merged = False
             for s in site.split(";"):
                 residues.append(s.split(","))  # 0:X, 1:X', 2:N, 3:Y, 4:Y'
@@ -235,7 +273,7 @@ def merge_bs_alignments(fname_in, fname_out):
                 # print "Added"
                 merged_bs_aln[(query, template)].append([identical, positive, aln_len, residues])
 
-        pp = pprint.PrettyPrinter(depth=6)
+        # pp = pprint.PrettyPrinter(depth=6)
         o.write("query\ttemplate\tidentical\tpositive\taln_len\tbs_len\tbs_covered\tbs_aligned\tbs_identical\tbs_positive\tbs_contacts\tbs_BLOSUM\tbs_score1\tsite\n")
         for (query, template), bs_alignments in merged_bs_aln.iteritems():
             for bs_alignment in bs_alignments:
@@ -255,13 +293,10 @@ def merge_bs_alignments(fname_in, fname_out):
 
 
 if __name__ == '__main__':
-    dirname = "/Users/agoncear/projects/Interactome/Workflow"
+    pass
+    # dirname = "/Users/agoncear/projects/Interactome/Workflow"
     # binding_site_alignments(dirname + "/Structures/pdb_templates_5A.tab",
     #                         dirname + "/BLAST-results/human_deltablast_report2.tab",
     #                         dirname + "/BLAST-results/human_deltablast_report_merged.tab")
-
-    merge_bs_alignments(dirname + "/BLAST-results/human_deltablast_report_merged.tab",
-                        dirname + "/BLAST-results/human_deltablast_report_merged-bs.tab")
-
-
-
+    # merge_bs_alignments(dirname + "/BLAST-results/human_deltablast_report_merged.tab",
+    #                     dirname + "/BLAST-results/human_deltablast_report_merged-bs.tab")
