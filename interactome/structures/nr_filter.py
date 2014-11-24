@@ -13,10 +13,11 @@ from interactome.structures.mapping import pdb_proteins
 
 
 class NRFilter():
-    def __init__(self):
-        NR_file = "/Users/agoncear/projects/Interactome/Workflow/Potential/NR_pdb_chains_40.tab"
-        mapping_file = "/Users/agoncear/projects/Interactome/Workflow/Structures/pdb_proteins.tab"
-        pdb_root = "/Users/agoncear/projects/Interactome/Workflow/Interfaces/"
+    def __init__(self, identity=30):
+        ROOT = "/Users/agoncear/projects/Interactome/Workflow/"
+        NR_file = ROOT + "Potential/NR_pdb_chains_{}.tab".format(identity)
+        mapping_file = ROOT + "Structures/pdb_proteins.tab"
+        pdb_root = ROOT + "Interfaces/"
 
         pdb_uniprot, author_to_mmcif = pdb_proteins(pdb_root, mapping_file)
 
@@ -38,24 +39,31 @@ class NRFilter():
         return (pdb, chain) in self.nr_set
 
 
-# def nr_filter(identity):
-#     fname_in = "{}bc-{}.out".format(DIR, identity)
-#     fname_out = "{}NR_pdb_chains_{}.tab".format(DIR_scoring, identity)
-#     # cluster_id = 0
-#     # clusters = {}
-#     # pdb_codes = []
-#     with open(fname_in, 'r') as f, open(fname_out, 'w') as o:
-#         for line in f:
-#             pdbs = line.strip().split()
-#             for i, pdb_chain in enumerate(pdbs):
-#                 pdb, chain = pdb_chain.split("_")
-#                 if i == 0:
-#                     o.write("{}\t{}\n".format(pdb, chain))
-#                 # clusters[pdb_chain] = cluster_id
-#                 # if pdb not in pdb_codes: pdb_codes.append(pdb)
-#             # cluster_id += 1
+def build_nr_list(identity):
+    ROOT = "/Users/agoncear/"
+    fname_in = ROOT + "data/PDB/clusters/bc-{}.out".format(identity)
+    fname_out = ROOT + "projects/Interactome/Workflow/Potential/NR_pdb_chains_{}.tab".format(identity)
+    # cluster_id = 0
+    # clusters = {}
+    # pdb_codes = []
+    with open(fname_in, 'r') as f, open(fname_out, 'w') as o:
+        for line in f:
+            pdbs = line.strip().split()
+            for i, pdb_chain in enumerate(pdbs):
+                pdb, chain = pdb_chain.split("_")
+                if i == 0:
+                    o.write("{}\t{}\n".format(pdb, chain))
+                # clusters[pdb_chain] = cluster_id
+                # if pdb not in pdb_codes: pdb_codes.append(pdb)
+            # cluster_id += 1
 
 
 if __name__ == '__main__':
     pass
     # nr_filter("40")
+    build_nr_list(30)
+    build_nr_list(40)
+    build_nr_list(50)
+    build_nr_list(70)
+    build_nr_list(90)
+    build_nr_list(95)

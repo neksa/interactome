@@ -28,7 +28,6 @@ class PDBFile(Struct):
         if code is not None:
             self.load(code, asm)
 
-
     def listAll(self):
         for root, dirnames, filenames in os.walk(self.pdb_path):
             for filename in fnmatch.filter(filenames, '*.pdb1.gz'):
@@ -43,13 +42,11 @@ class PDBFile(Struct):
                 gz_fname = root + "/" + filename
                 yield pdb_code, gz_fname
 
-
     def getChains(self):
         # if asm is None: asm = 1
         chains = set([a.chain for a in self.iterAtoms()])
         print chains
         return chains
-
 
     def load(self, code, asm=None):
         if asm is None:
@@ -62,9 +59,9 @@ class PDBFile(Struct):
             return
         raise Exception("Structure {} could not be loaded from file {}".format(code, fname))
 
-
     def iterAtoms(self):
-        if self.lines is None: raise Exception('Structure not loaded')
+        if self.lines is None:
+            raise Exception('Structure not loaded')
 
         asm = 1
         if self.asm is not None:
@@ -78,7 +75,7 @@ class PDBFile(Struct):
 
             if line.startswith("ATOM"):
                 # print atom
-                pdb_atomn = line[13:16].strip() # 'CA' # questions about strip!!! Calcium short vs CA
+                pdb_atomn = line[13:16].strip()  # 'CA' # questions about strip!!! Calcium short vs CA
                 pdb_atomi = int(line[4:12].strip())
                 pdb_resn = line[17:20].strip()
                 pdb_chain = line[21:22] 
@@ -98,20 +95,18 @@ class PDBFile(Struct):
                 atom = Atom(chain=chain, chain_real=pdb_chain, chain_author=pdb_chain, resn=pdb_resn, resi=pdb_resi, resn_short=pdb_resn_short, atomn=pdb_atomn, atomi=pdb_atomi, element=pdb_element, xyz=xyz)
                 yield atom
 
-
     def fetchRemoteStructure(self, pdb):
-        conn = httplib.HTTPConnection("www.rcsb.org", timeout = 10)
+        conn = httplib.HTTPConnection("www.rcsb.org", timeout=10)
         print "Downloading PDB {}...".format(pdb)
         conn.request("GET", "/pdb/download/downloadFile.do?fileFormat=pdb&compression=NO&structureId="+pdb.lower())
         r1 = conn.getresponse()
-        
-        if r1.status == httplib.NOT_FOUND: # 404
+
+        if r1.status == httplib.NOT_FOUND:  # 404
             raise ValueError("Structure not found for PDB %s (www.rcsb.org)" % (pdb,))
-            
+
         # print r1.status, r1.reason
         pdb_structure = r1.read()
         return pdb_structure
-
 
     def getStructureFiles(self, pdb_list):
         for pdb in pdb_list:
@@ -122,7 +117,7 @@ class PDBFile(Struct):
                 continue
             except IOError:
                 pass
-            
+
             try:
                 structure = self.fetchRemoteStructure(pdb)
             except ValueError:
@@ -134,7 +129,6 @@ class PDBFile(Struct):
                     o.write(structure)
             except IOError:
                 print "Could not save PDB structure downloded from the PDB"
-
 
     """
     Returns dictionary
@@ -150,7 +144,7 @@ class PDBFile(Struct):
                 # print "File exists. skipping", glob.glob(fnames_pir)
                 continue
 
-            if m == None:
+            if m is None:
                 m = Modeller()
 
             try:
@@ -168,4 +162,3 @@ class PDBFile(Struct):
     """
     def extractATOMSEQ(self):
         pass
-

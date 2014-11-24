@@ -16,7 +16,7 @@ chain 1 + model
 chain 2 + model
 resi 1 atom A
 resi 2 atom B
-res name 1 atom A 
+res name 1 atom A
 res name 2 atom B
 distance A <-> B
 distance res1_CA <-> res2_CA
@@ -32,39 +32,33 @@ results/hq/1hqm.int:1hqm    C   VAL 1099    CG1 D   VAL    8    CG1 3.57    118.
 
 
 """
-
 import fnmatch
-import itertools
 import os
-import errno
 import gzip
 import math
 import string
-
 import signal
 import time
 
 from collections import defaultdict
 from scipy.spatial import cKDTree
-
 import multiprocessing as mp
 
 from non_redundant_filter import NRFilter
 
+
 class Contacts:
 
-    def __init__(self, NR = None,  threshold = 5.0):
+    def __init__(self, NR=None, threshold=5.0):
         self.threshold_distance = threshold
         self.NR = NR
 
-
     def findAll(self, pdb, in_fname, out_fname):
+        # chain_numbers = []
+        # residue_numbers = {}
+        # atom_ids = []
+        # atom_xyz = []
 
-        chain_numbers = []
-        residue_numbers = {}
-
-        atom_ids = []
-        atom_xyz = []
         chains = defaultdict(lambda: defaultdict(list))
         residues_with_CA = set()
         chain_suffix = 0
@@ -77,17 +71,21 @@ class Contacts:
                     chain_suffix = model - 1
 
                 if line.startswith("ATOM"):
-                    pdb_atomn = line[13:16].strip() # 'CA' # questions about strip!!! Calcium short vs CA
-                    pdb_atomi = int(line[4:12].strip())
+                    pdb_atomn = line[13:16].strip()  # 'CA' # questions about strip!!! Calcium short vs CA
+                    # pdb_atomi = int(line[4:12].strip())
                     pdb_resn = line[17:20].strip()
-                    pdb_chain = line[21:22] 
+                    pdb_chain = line[21:22]
                     pdb_resi = line[22:26]
                     pdb_element = line[76:78].strip()
 
-                    if pdb_element == "H": continue # skip all hydrogen atoms
-                    if pdb_resn == "UNK": continue  # skip unknown residues
-                    if line[16] in string.letters: continue # skip atoms with letters in atom numbers
-                    if line[26] in string.letters: continue # skip atoms with letters in residue numbers
+                    if pdb_element == "H":
+                        continue  # skip all hydrogen atoms
+                    if pdb_resn == "UNK":
+                        continue  # skip unknown residues
+                    if line[16] in string.letters:
+                        continue  # skip atoms with letters in atom numbers
+                    if line[26] in string.letters:
+                        continue  # skip atoms with letters in residue numbers
 
                     chain = pdb_chain
                     if chain_suffix > 0:
@@ -97,7 +95,7 @@ class Contacts:
                         residues_with_CA.add((chain, pdb_resi))
 
                     # atom = (pdb, chain, pdb_resi, pdb_resn, pdb_atomi, pdb_atomn)
-                    atom = (pdb, chain, pdb_resi, pdb_resn, pdb_atomn) # Do not change the order of attributes in the tuple
+                    atom = (pdb, chain, pdb_resi, pdb_resn, pdb_atomn)  # Do not change the order of attributes in the tuple
                     xyz = [float(line[30+8*i:38+8*i]) for i in range(3)]
                     # print atom
                     # print xyz
@@ -106,12 +104,12 @@ class Contacts:
                     chains[chain]["xyz"].append(xyz)
 
         for chain in sorted(chains.keys()):
-            atoms = chains[chain]["atom"] # ref, not a copy
-            coordinates = chains[chain]["xyz"] # ref
+            atoms = chains[chain]["atom"]  # ref, not a copy
+            coordinates = chains[chain]["xyz"]  # ref
             atoms_to_remove = [i for i, atom in enumerate(atoms) if (chain, atom[2]) not in residues_with_CA]
             atoms[:] = [atom for i, atom in enumerate(atoms) if i not in atoms_to_remove]
             coordinates[:] = [xyz for i, xyz in enumerate(coordinates) if i not in atoms_to_remove]
-            
+
             if len(atoms) == 0 and len(coordinates) == 0:
                 # print "Removing the whole chain {} because there are no CA atoms. Possibly a nucleic acid chain".format(chain)
                 del chains[chain]
@@ -138,14 +136,12 @@ class Contacts:
                 if self.NR is not None and not self.NR.isNR(pdb, chain1):
                     # print pdb, "skip chain", chain1
                     continue
-                print pdb, "analyze chain", chain1,
-                
+                # print pdb, "analyze chain", chain1,
+
                 processed_chains += 1
                 for j, chain2 in enumerate(chains.iterkeys()):
-                    if j>i:
-
-                        print chain2,
-                        
+                    if j > i:
+                        # print chain2,
                         atom1 = chains[chain1]["atom"]
                         atom2 = chains[chain2]["atom"]
                         xyz1 = chains[chain1]["xyz"]
@@ -162,10 +158,8 @@ class Contacts:
                                 CA_k = CA1[atom1[k][:-2]]
                                 CA_l = CA2[atom2[l][:-2]]
                                 dCA12 = self.dist(xyz1[CA_k], xyz2[CA_l])
-
                                 # print "{}: {} <-> {} {} <-> {} [d={:.2f} A] [dCA={:.2f} A] {} <-> {}".format(
                                 #     pdb, chain1, chain2, k, l, d12, dCA12, str(atom1[k]), str(atom2[l]))
-
                                 resi1 = atom1[k][2]
                                 resi2 = atom2[l][2]
                                 resn1 = atom1[k][3]
@@ -176,7 +170,6 @@ class Contacts:
                                 o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{:.2f}\t{:.2f}\n".format(
                                     pdb, chain1, resn1, resi1, atm1, chain2, resn2, resi2, atm2, d12, dCA12))
                                 n_contacts += 1
-                print
 
         print "Processed {}, {} chains, {} contacts".format(pdb, processed_chains, n_contacts)
 
@@ -186,7 +179,7 @@ class Contacts:
 
 def extract_contacts(params):
     pdb_code, gz_fname, fname_pdb, fname_int = params
-    print pdb_code
+    # print pdb_code
 
     try:
         with open(fname_pdb):
@@ -199,7 +192,6 @@ def extract_contacts(params):
                 # clean_pdb = pdb.cleanUp()
                 out_pdb.write(raw_pdb)
                 # print "IN", gz_fname, "OUT", fname_pdb
-    
     NR = NRFilter()
     c = Contacts(NR)
     c.findAll(pdb_code, fname_pdb, fname_int)
@@ -210,8 +202,7 @@ class Structure:
     def __init__(self):
         root = "/Users/agoncear/projects/Interactome/scoring/"
         self.results_dir = root+"results/"
-        self.structures_dir = "/Users/agoncear/data/PDB/biounit/" # root+"PDB/"
-
+        self.structures_dir = "/Users/agoncear/data/PDB/biounit/"  # root+"PDB/"
 
     def dirAll(self, NR=None, only=None):
         """
@@ -227,16 +218,16 @@ class Structure:
                     asm = int(pdb_asm[3:])
                 else:
                     continue
-                
+
                 if only is not None and pdb_code[1:3] != only:
                     continue
 
                 if NR is not None and not NR.isNR(pdb_code):
                     # print "Skip {}".format(pdb_code)
                     continue
-                
+
                 gz_fname = root + "/" + filename
-                fname_base = self.results_dir + pdb_code[1:3] + "/" + pdb_code 
+                fname_base = self.results_dir + pdb_code[1:3] + "/" + pdb_code
                 fname_pdb = fname_base + ".pdb"
                 fname_int = fname_base + ".int"
 
@@ -248,11 +239,10 @@ class Structure:
 
                 try:
                     with open(fname_int):
-                        raise Exception() # TEMP!!!
+                        raise Exception()  # TEMP!!!
                         # pass
                 except:
                     yield((pdb_code, gz_fname, fname_pdb, fname_int))
-                    
 
     def runAll(self, only=None):
         for (pdb_code, gz_fname, fname_pdb, fname_int) in self.dirAll(only):
@@ -281,7 +271,7 @@ if __name__ == '__main__':
         print "Caught KeyboardInterrupt, terminating workers"
         pool.terminate()
         pool.join()
-    
+
 
 # def process_pdb():
 
@@ -295,11 +285,9 @@ if __name__ == '__main__':
 
 #                 path = OUTPUT_PATH + subdir + "/"
 #                 try:
-#                     os.makedirs(path) 
+#                     os.makedirs(path)
 #                 except:
 #                     pass
-
-                
 
 
 # if __name__ == '__main__':

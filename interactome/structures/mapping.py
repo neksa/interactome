@@ -13,7 +13,8 @@ def pdb_proteins(pdb_path, fname):
     chain_author_to_mmcif = {}
 
     try:
-        with open(fname, 'r') as f: pass
+        with open(fname, 'r') as f:
+            pass
     except:
         try:
             with open(fname, 'w') as o:
@@ -55,7 +56,7 @@ def protein_genes():
     # pdb_uniprot_fname = d + "pdb_uniprot_chain_map.lst.2"
     uniprot_gene = defaultdict(list)
     # pdb_uniprot = defaultdict(list)
-    with open(uniprot_gene_fname) as f1:#, open(pdb_uniprot_fname) as f2:
+    with open(uniprot_gene_fname) as f1:  # , open(pdb_uniprot_fname) as f2:
         for line in f1:
             # print line
             fields = line.strip().split()
@@ -80,21 +81,20 @@ def main():
 
     print "Loading PDB-Uniprot mapping..."
     pdb_uniprot = pdb_proteins(pdb_path)[0]
-    
+
     # print "Loading Uniprot-Entrez Gene ID mapping..."
     # uniprot_gene = protein_genes()
 
     complexes = Complexes()
     print "Loading Complexes-templates..."
-    templates = complexes.loadTemplates(pdb_templates)#, mapping)
+    templates = complexes.loadTemplates(pdb_templates)  # , mapping)
     # print "Info: Number of templates (PDB+chain+chain) = ", len(templates.keys())
-
 
     with open("template_analysis.tab", 'w') as o:
         o.write("template\tpdb\tA\tB\tprot_A\tprot_B\tcomplex_type\n")
         for (pdb, A, B), _ in templates:
-            pdb_chain_A = pdb.upper() + '|' + A.split("_",1)[0]
-            pdb_chain_B = pdb.upper() + '|' + B.split("_",1)[0]
+            pdb_chain_A = pdb.upper() + '|' + A.split("_", 1)[0]
+            pdb_chain_B = pdb.upper() + '|' + B.split("_", 1)[0]
             template = pdb.upper() + '|' + A + '|' + B
             # print pdb, A, B, "???"
 
@@ -121,7 +121,7 @@ def main():
             if len(uniprots_B) > 0:
                 prot_B = list(uniprots_B)[0]
 
-            o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(template, pdb, A.split("_",1)[0], B.split("_",1)[0], prot_A, prot_B, complex_type))
+            o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(template, pdb, A.split("_", 1)[0], B.split("_", 1)[0], prot_A, prot_B, complex_type))
 
 # with open("matches.processed.tab", 'r') as f:
 #     for line in islice(f, 1, None):

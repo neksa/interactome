@@ -5,7 +5,7 @@ Save LOD to AAIndex matrix format:
 ARNDCQEGHILKMFPSTWYV
 """
 import math
-import sys
+# import sys
 from collections import defaultdict
 from scipy.constants import k as kB
 

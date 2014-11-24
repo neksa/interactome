@@ -1,8 +1,5 @@
-
-
-import unittest
+# import unittest
 import pytest
-
 
 # def pytest_generate_tests(metafunc):
 #     # called once per each test function
@@ -16,17 +13,20 @@ def PATH():
     """ Path to PDB data with subdirectories biounits/ and mmcif/ """
     return "/Users/agoncear/data/pdb"
 
+
 @pytest.fixture
 def MMCIF(PATH):
     """ mmcif instance """
     from mmcif import mmCifFile
     return mmCifFile(PATH)
 
+
 @pytest.fixture
 def PDB(PATH):
     """ pdb instance """
     from pdb import PDBFile
     return PDBFile(PATH)
+
 
 ############################################################################
 def test_mmcif_operations(MMCIF):
@@ -35,7 +35,6 @@ def test_mmcif_operations(MMCIF):
     assert len(MMCIF.parseOperationExpression("1,2,3")) == 3
     assert len(MMCIF.parseOperationExpression("1-4")) == 4
     assert len(MMCIF.parseOperationExpression("1-3,8,10-12,15")) == 8
-
 
 
 def test_protein_mapping_cif_2xb2(MMCIF):
@@ -132,9 +131,8 @@ def test_protein_mapping_cif_2qqk(MMCIF):
 
     chains = MMCIF.getChains()
     assert len(chains) == 6
-    
     # mapping = MMCIF.getChainProteinMapping()
-    # assert len(mapping.keys()) == 
+    # assert len(mapping.keys()) ==
 
 
 def test_atom_pdb_4tim(PDB):
@@ -150,9 +148,9 @@ def test_atom_pdb_4tim(PDB):
         if atom.chain == "A" and atom.resi == 2:
             natoms += 1
             if atom.atomn == "CA" and atom.element == "C":
-                ca = True    
+                ca = True  
     assert natoms == 6
-    assert ca == True
+    assert ca is True
 
 
 def test_atom_mmcif_4tim(MMCIF):
@@ -160,7 +158,6 @@ def test_atom_mmcif_4tim(MMCIF):
     natoms = 0
     MMCIF.load("4tim")
     for i, atom in enumerate(MMCIF.iterAtoms()):
-
         if i == 0:
             assert atom.resn == "SER"
             assert atom.resn_short == "S"
@@ -169,9 +166,9 @@ def test_atom_mmcif_4tim(MMCIF):
         if atom.chain == "A" and atom.resi == 2:
             natoms += 1
             if atom.atomn == "CA" and atom.element == "C":
-                ca = True    
+                ca = True  
     assert natoms == 6
-    assert ca == True
+    assert ca is True
 
 
 def test_protein_mapping_cif_3azm(MMCIF):
@@ -190,9 +187,7 @@ def test_protein_mapping_cif_3azm(MMCIF):
     MMCIF.load("3azm")
     mapping = MMCIF.getChainProteinMapping()
     assert len(mapping.keys()) == 8
-    
     assert mapping["A"].uniprot == mapping["E"].uniprot
-    
     m = mapping["A"]
     assert m.uniprot == "P68431"
     assert m.begin == 0
@@ -225,7 +220,7 @@ def test_NMR(MMCIF):
     assert meta.method.endswith("NMR")
     assert meta.title == "The solution structure of the Ki67FHA/hNIFK(226-269)3P complex"
     assert meta.description == "Antigen KI-67/MKI67 FHA domain interacting nucleolar phosphoprotein"
-    assert len(list(MMCIF.iterAtoms())) == 2155 # taking into account atoms of 3 phosphorylated residues in chain B which are not counted
+    assert len(list(MMCIF.iterAtoms())) == 2155  # taking into account atoms of 3 phosphorylated residues in chain B which are not counted
 
 
 @pytest.mark.parametrize("code,nchains", [
@@ -264,5 +259,3 @@ def test_list_all_cif(MMCIF):
 def test_list_all_pdb(PDB):
     lpdb = PDB.listAll()
     assert len([x for x in lpdb]) == 89414
-
-

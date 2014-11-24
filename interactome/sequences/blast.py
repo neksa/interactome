@@ -47,7 +47,7 @@ class BLAST:
         with open(query_filename, 'w') as o:
             o.write(sequence)
 
-    def runBLASTP(self, sequence_file, results_file, format=5):
+    def runBLASTP(self, sequence_file, results_file, evalue=0.01, format=5, remote=True):
         """
         Returns XML
         """
@@ -59,26 +59,29 @@ class BLAST:
         except IOError:
             pass
 
-        proc = subprocess.Popen([
-            "/usr/local/ncbi/blast/bin/blastp",
-            "-out", results_file,
-            "-db", "pdb",
-            "-query", sequence_file,
-            "-outfmt", str(format),
-            "-evalue", "1",
-            "-remote"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        params = ["/usr/local/ncbi/blast/bin/blastp",
+                    "-out", results_file,
+                    "-query", sequence_file,
+                    "-outfmt", str(format),
+                    "-evalue", "{0:.5f}".format(evalue)]
+        if remote:
+            params.append("-db")
+            params.append("pdb")
+            params.append("-remote")
+        else:
+            params.append("-num_threads")
+            params.append("8")
+            params.append("-db")
+            params.append("pdbaa")
 
-        output, err = proc.communicate()[0]
+        proc = subprocess.Popen(params, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, err = proc.communicate()
         print err
-        # with open(results_file, 'w') as o:
-        #     o.write(output)
-        # return output
 
-    def runDeltaBLAST(self, sequence_file, results_file, format=5):
+    def runDeltaBLAST(self, sequence_file, results_file, inclusion_threshold=0.01, domain_inclusion_threshold=0.01, format=5, remote=True):
         """
         Returns XML
         """
-
         try:
             with open(results_file, 'r') as f:
                 output = f.read()
@@ -86,17 +89,25 @@ class BLAST:
         except IOError:
             pass
 
-        proc = subprocess.Popen([
-            "/usr/local/bin/deltablast",
-            "-out", results_file,
-            "-db", "pdb",
-            "-query", sequence_file,
-            "-outfmt", str(format),
-            "-remote",
-            "-inclusion_ethresh", "0.05",
-            "-domain_inclusion_ethresh", "0.05"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        params = ["/usr/local/bin/deltablast",
+                    "-out", results_file,
+                    "-query", sequence_file,
+                    "-outfmt", str(format),
+                    "-inclusion_ethresh", "{0:.5f}".format(inclusion_threshold),
+                    "-domain_inclusion_ethresh", "{0:.5f}".format(domain_inclusion_threshold)]
+        if remote:
+            params.append("-db")
+            params.append("pdb")
+            params.append("-remote")
+        else:
+            params.append("-num_threads")
+            params.append("8")
+            params.append("-db")
+            params.append("pdbaa")
 
-        output, err = proc.communicate()[0]
+        proc = subprocess.Popen(params, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        output, err = proc.communicate()
         print err
         # with open(results_file, 'w') as o:
         #     o.write(output)
@@ -172,6 +183,7 @@ class BLAST:
                 for hit in iteration.findall("Iteration_hits/Hit"):
                     # print hit
                     hit_id = hit.find("Hit_accession").text
+                    # hit_id = hit_id.replace("_", "|") # this is actually done separately in conversion
                     # print hit_id
                     # hit_len = int(hit.find("Hit_len").text)
                     for hsp in hit.findall("Hit_hsps/Hsp"):
@@ -220,7 +232,7 @@ class BLAST:
                         h.identical, h.positive, h.gaps, h.align_len,
                         h.query_from, h.query_to, h.hit_from, h.hit_to, h.qseq, h.hseq))
 
-    def readReport(self, blast_report):
+    def readReport(self, blast_report, set_of_structures=None):
         """
             Parse format saved by makeReport
             convert values to float and int from string, calculate sequence identity in %
@@ -242,6 +254,9 @@ class BLAST:
                     print '.',
                 # if c % 1000000 == 0: break
                 # pdb, pdb_chain = fields[1].split("|")
+                structure = fields[1]
+                if set_of_structures is not None and structure not in set_of_structures:
+                    continue
 
                 # fields[1] = fields[1].replace('|', '') # remove bar from hit name (separating PDB ID and chain)
                 fields[2:5] = map(float, fields[2:5])  # score, bit_score, evalue
@@ -254,12 +269,14 @@ class BLAST:
                 fields.append(identity)
                 report = BLASTReport._make(fields)
 
-                if not (15 <= identity):
-                    continue
-                if fields[8] < 25:
-                    continue  # report.align_len
-                if fields[4] > 0.001:
-                    continue  # report.evalue
+                # if not (15 <= identity):
+                #     continue
+
+                # if fields[8] < 25:
+                #     continue  # report.align_len
+
+                # if fields[4] > 0.01:
+                #     continue  # report.evalue
 
                 # print report.identity
                 # by_hit[report.hit].append(report)
