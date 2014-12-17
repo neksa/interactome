@@ -1,5 +1,5 @@
 from itertools import islice
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from benchmark_common import get_scored_pairs, roc, multiroc
 
 
@@ -13,27 +13,38 @@ from benchmark_common import get_scored_pairs, roc, multiroc
 #     return mapping
 
 
-def load_mapping(fname):
-    mapping = {}
-    with open(fname) as f:
+def load_gene_protein_mapping(mapping_fname):
+    # gene_proteins = defaultdict(set)
+    # protein_genes = defaultdict(set)
+    protein_genes = {}
+    with open(mapping_fname) as f:
         for line in f:
-            a, b = line.strip().split()
-            if not b.startswith("hpy:"):
+            fields = line.strip().split()
+            # print fields
+            if len(fields) != 2:
                 continue
-            HP = b.split(":")[1]
-            mapping[a] = HP
-    return mapping
+            gene = int(fields[0])
+            protein = fields[1]
+            # gene_proteins[gene].add(protein)
+            # protein_genes[protein].add(gene)
+            protein_genes[protein] = gene
+    # return gene_proteins, protein_genes
+    return protein_genes
 
 
 def load_interactions(fname):
     interactions = set()
     with open(fname) as f:
-        for line in islice(f, 8, None):
-            line = line.strip()
-            if not line.startswith("HP"):
-                continue
-            pair = line.split()
-            pair = pair[0], pair[1]
+        for line in islice(f, 1, None):
+            if len(line) == 0: continue
+            print "LINE", line
+            gA, nameA, gB, nameB = line.strip().split("\t")
+            # print gA, nameA, gB, nameB
+            gA = int(gA)
+            gB = int(gB)
+            pair = (gA, gB)
+            if gA > gB:
+                pair = (gB, gA)
             interactions.add(pair)
     return interactions
 
@@ -67,51 +78,27 @@ def scored(predicted_pairs, observed_pairs, mapping):
     return true_labels, scores
 
 
-"""
-C694_01785; HP_0352      FLIG_HELPY  O25119      343     fliG
-"""
-# Swissprot = namedtuple('Swissprot', 'swissprot, uniprot, length, genes')
-def load_swissprot(fname):
-    loci = {}
-    with open(fname) as f:
-        for line in islice(f, 30, None):
-            line = line.strip()
-            if not line.startswith('HP') and not line.startswith('C6'):
-                continue
-            locus = ''
-            for l in line[:25].strip().split(';'):
-                l = l.strip()
-                if l.startswith('HP_'):
-                    locus = l.split('.')[0]
-                    locus = locus.replace('_', '')
-                    break
-            if locus == '':
-                continue
-            # swissprot = line[25:36].strip()
-            uniprot = line[37:48].strip()
-            # length = line[47:56].strip()
-            # genes = line[57:].strip()
-            # loci[locus] = Swissprot(swissprot=swissprot, uniprot=uniprot, length=length, genes=genes)
-            loci[uniprot] = locus
-            # print uniprot, locus
-    return loci
-
-
 ##########################################
 if __name__ == '__main__':
     d = "/Users/agoncear/projects/Interactome/Workflow"
-    roc_d = d + "/Benchmarks/Hpylori"
-    matches_fname = d + "/Alignments/matches_HPY_26695_PPI.tab"
-    validation_fname = "/Users/agoncear/data/Hpylori/409211A0_S1.txt"
+    roc_d = d + "/Benchmarks/Hsapiens"
+    matches_fname = d + "/Alignments/matches_human.tab"
+    # validation_fname = "/Users/agoncear/data/Hpylori/409211A0_S1.txt"
     # mapping_fname = "/Users/agoncear/data/Hpylori/helpy.txt"
-    mapping_fname = "/Users/agoncear/data/Hpylori/M2014110493WE3322RA.tab"
+    # mapping_fname = "/Users/agoncear/data/Hpylori/M2014110493WE3322RA.tab"
+
+    validation_fname= "/Users/agoncear/data/Vidal/Human/ALL.tsv"
+    mapping_fname = "/Users/agoncear/data/Vidal/Human/unique_gene_ids_mapped.tab"
 
     # Gene pairs from EBI (Uetz)
-    print "Loading Interactome Hpylori from Rain et al., Nature 409 p211, 2000"
+    print "Loading Interactome Y2H Human"
     pairs_obs = load_interactions(validation_fname)
     # print pairs_obs
     # mapping = load_swissprot(mapping_fname)
-    mapping = load_mapping(mapping_fname)
+    # mapping = load_mapping(mapping_fname)
+    # gene_proteins, protein_genes = load_gene_protein_mapping(mapping_fname)
+    mapping = load_gene_protein_mapping(mapping_fname)
+    # mapping = protein_genes
     # print mapping
 
     # Uniprot pairs
@@ -132,24 +119,24 @@ if __name__ == '__main__':
     # print r_identity
 
     print "Making plots"
-    roc(r_identity, roc_d + "/identity.png", "H. pylori: Alignment identity")
-    roc(r_bs_identity, roc_d + "/bs_identity.png", "H. pylori: BS alignment identity")
-    roc(r_positive, roc_d + "/positive.png", "H. pylori: Alignment BLOSUM62 positive")
-    roc(r_bs_positive, roc_d + "/bs_positive.png", "H. pylori: BS alignment BLOSUM62 positive")
-    roc(r_bs_coverage, roc_d + "/bs_coverage.png", "H. pylori: BS coverage")
-    roc(r_score, roc_d + "/bs_score.png", "H. pylori: Compatibility score 1")
-    roc(r_zscore, roc_d + "/bs_zscore.png", "H. pylori: Compatibility Z-score")
-    roc(r_model_minus_avg, roc_d + "/bs_model_minus_avg.png", "H. pylori: Compatibility score-avg(decoy)")
-    roc(r_random, roc_d + "/bs_random.png", "H. pylori: Random control")
+    roc(r_identity, roc_d + "/identity.png", "H. sapiens: Alignment identity")
+    roc(r_bs_identity, roc_d + "/bs_identity.png", "H. sapiens: BS alignment identity")
+    roc(r_positive, roc_d + "/positive.png", "H. sapiens: Alignment BLOSUM62 positive")
+    roc(r_bs_positive, roc_d + "/bs_positive.png", "H. sapiens: BS alignment BLOSUM62 positive")
+    roc(r_bs_coverage, roc_d + "/bs_coverage.png", "H. sapiens: BS coverage")
+    roc(r_score, roc_d + "/bs_score.png", "H. sapiens: Compatibility score 1")
+    roc(r_zscore, roc_d + "/bs_zscore.png", "H. sapiens: Compatibility Z-score")
+    roc(r_model_minus_avg, roc_d + "/bs_model_minus_avg.png", "H. sapiens: Compatibility score-avg(decoy)")
+    roc(r_random, roc_d + "/bs_random.png", "H. sapiens: Random control")
 
     multiroc(
         (r_identity, r_bs_identity, r_positive, r_bs_positive),
         ('id', 'bs_id', 'pos', 'bs_pos'),
         roc_d + "/id_pos.png",
-        "Basic ROC in H.pylori, Rain et al. 2000")
+        "Basic ROC in H. sapiens, Y2H Vidal")
 
     multiroc(
         (r_bs_positive, r_model_minus_avg),
         ('Binding site sequence similarity', 'Interface compatibily score'),
-        roc_d + "/Hpylori_combined.eps",
-        "H.pylori, Rain et al. 2000")
+        roc_d + "/Hsapiens_combined.eps",
+        "H. sapiens, Y2H Vidal")

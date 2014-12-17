@@ -2,13 +2,17 @@ from itertools import islice
 from collections import defaultdict
 from copy import deepcopy
 
+import pylab as pl
+from sklearn.metrics import roc_curve, auc
+
+
 def best_pairs(matches_fname, scoring=1):
     pairs = defaultdict(list)
     with open(matches_fname) as f:
         for line in islice(f, 1, None):
             queryA, queryB, tpl, query_type, template_type, SC1, SC2, SC3, SC4, SC5, SC6, siteA, siteB = line.strip().split("\t")
             SC1, SC2, SC3, SC4, SC5, SC6 = map(float, (SC1, SC2, SC3, SC4, SC5, SC6))
-            
+
             score = SC2  # compatibility score
             if scoring == 4:
                 score = SC6
@@ -147,29 +151,58 @@ def inverse_scored_labels(predicted, observed, gene_proteins, output):
             o.write("{}\t{}\n".format(score, label))
 
 
+def roc(r, fname, title=None):
+    test_labels, scores = r
+    fpr, tpr, thresholds = roc_curve(test_labels, scores)
+
+    with open(fname.split(".")[0] + ".txt", 'w') as o:
+        o.write("tpr\tfpr\tthreshold\n")
+        for i in xrange(len(fpr)):
+            o.write("{}\t{}\t{}\n".format(tpr[i], fpr[i], thresholds[i]))
+    roc_auc = auc(fpr, tpr)
+    print "Area under the ROC curve : %f" % roc_auc
+
+    # Plot ROC curve
+    pl.clf()
+    pl.plot(fpr, tpr, label='AUC = %0.2f' % roc_auc)
+    pl.plot([0, 1], [0, 1], 'k--')
+    pl.xlim([0.0, 1.0])
+    pl.ylim([0.0, 1.0])
+    pl.xlabel('False Positive Rate')
+    pl.ylabel('True Positive Rate')
+    pl.title(title)
+    pl.legend(loc="lower right")
+    pl.savefig(fname)
+
+
 def scored_labels(predicted, observed, gene_proteins, output_scores, output_network):
-    with open(output_scores, 'w') as o, open(output_network, 'w') as o_net:
-        gene_pairs = defaultdict(list)
+    true_labels = []
+    scores = []
+    # with open(output_scores, 'w') as o, open(output_network, 'w') as o_net:
+    gene_pairs = defaultdict(list)
 
-        for (pA, pB), score in predicted.iteritems():
-            genesA = protein_genes[pA]
-            genesB = protein_genes[pB]
-            for gA in genesA:
-                for gB in genesB:
-                    pair = gA, gB
-                    if gA > gB:
-                        pair = gB, gA
-                    gene_pairs[pair].append(score)
+    for (pA, pB), score in predicted.iteritems():
+        genesA = protein_genes[pA]
+        genesB = protein_genes[pB]
+        for gA in genesA:
+            for gB in genesB:
+                pair = gA, gB
+                if gA > gB:
+                    pair = gB, gA
+                gene_pairs[pair].append(score)
 
-        for (gA, gB), scores in gene_pairs.iteritems():
-            score = max(scores)
-            label = 0
-            if (gA, gB) in observed:
-                label = 1
-            # print score, label
-            o.write("{}\t{}\n".format(score, label))
-            o_net.write("{}\t{}\t{}\t{}\n".format(gA, gB, score, label))
-    return gene_pairs
+    for (gA, gB), scores in gene_pairs.iteritems():
+        score = max(scores)
+        label = 0
+        if (gA, gB) in observed:
+            label = 1
+        true_labels.append(label)
+        scores.append(score)
+        # print score, label
+        # o.write("{}\t{}\n".format(score, label))
+        # o_net.write("{}\t{}\t{}\t{}\n".format(gA, gB, score, label))
+    # return gene_pairs
+    return true_labels, scores
 
 ##########################################
 if __name__ == '__main__':
