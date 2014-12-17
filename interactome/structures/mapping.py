@@ -6,6 +6,11 @@ from itertools import islice
 from complexes import Complexes
 from collections import defaultdict
 
+######################
+
+# THIS MAPPING ROUTINE IS OBSOLETE. SEE TEMP2.PY in WORKFLOWS
+
+#######################
 
 def pdb_proteins(pdb_path, fname):
     # chain, m.chain_author, m.uniprot, m.begin, m.end

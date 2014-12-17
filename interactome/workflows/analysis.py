@@ -15,7 +15,7 @@ def get_pdb_path():
 
 
 def get_results_path():
-    return "/Users/agoncear/projects/Interactome/Workflow/Interfaces.new"
+    return "/Users/agoncear/projects/Interactome/Workflow/Interfaces"
 
 
 def get_threshold():
@@ -27,19 +27,21 @@ def extract_contacts(params):
     code, gz_filename = params
     # print "Find contacts:", code
     mmcif = mmCifFile(get_pdb_path(), code)
+
     meta = mmcif.getMetaData()
     if meta.method.strip() in ('X-RAY DIFFRACTION', 'SOLID-STATE NMR', 'SOLUTION NMR'):
         iface = Interface(get_results_path(), get_threshold())
         iteratoms = mmcif.iterAtoms()
         n = iface.findContacts(code, iteratoms)
-    # print code, "OK"
+
     # Extract mapping:
     chain_protein_mapping = mmcif.getChainProteinMapping()
     with open(get_mapping_fname(code), 'w') as o:
-        o.write("chain\tchain_author\tuniprot\tbegin\tend\n")
+        o.write("chain\tchain_author\tuniprot\tseq_aln_begin\tseq_aln_end\tdb_aln_begin\tdb_aln_end\tauth_aln_begin\tauth_aln_end\n")
         for chain, m in chain_protein_mapping.iteritems():
-            o.write("{}\t{}\t{}\t{}\t{}\n".format(chain, m.chain_author, m.uniprot, m.begin, m.end))
-            print "{}\t{}\t{}\t{}\t{}\t{}".format(code, chain, m.chain_author, m.uniprot, m.begin, m.end)
+            o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(chain, m.chain_author, m.uniprot, m.seq_aln_begin, m.seq_aln_end, m.db_aln_begin, m.db_aln_end, m.auth_aln_begin, m.auth_aln_end))
+            print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(chain, m.chain_author, m.uniprot, m.seq_aln_begin, m.seq_aln_end, m.db_aln_begin, m.db_aln_end, m.auth_aln_begin, m.auth_aln_end))
+    print code, "OK"
 
 
 def get_mapping_fname(code):

@@ -1,5 +1,6 @@
 #
 import os
+import sys
 import fnmatch
 from itertools import islice
 from interactome.structures.complexes import Complexes
@@ -17,7 +18,8 @@ def pdb_proteins(pdb_path, fname):
     except:
         try:
             with open(fname, 'w') as o:
-                o.write("pdb\tchain\tchain_author\tuniprot\tbegin\tend\n")
+                # o.write("pdb\tchain\tchain_author\tuniprot\tbegin\tend\n")
+                o.write("pdb\tchain\tchain_author\tuniprot\tseq_aln_begin\tseq_aln_end\tdb_aln_begin\tdb_aln_end\tauth_aln_begin\tauth_aln_end\n")
                 for root, dirnames, filenames in os.walk(pdb_path):
                     for filename in fnmatch.filter(filenames, '*_chain_protein_mapping.tab'):
                         pdb, _ = os.path.basename(filename).lower().split("_", 1)
@@ -28,14 +30,15 @@ def pdb_proteins(pdb_path, fname):
                             for line in islice(f, 1, None):
                                 fields = line.strip().split("\t")
                                 fields.insert(0, pdb)
-                                o.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(*fields))
+                                o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(*fields))
+                                # o.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(*fields))
         except Exception, e:
             os.remove(fname)
             raise e
 
     with open(fname, 'r') as f:
         for line in islice(f, 1, None):
-            pdb, chain, chain_author, uniprot, begin, end = line.strip().split("\t")
+            pdb, chain, chain_author, uniprot, seq_aln_begin, seq_aln_end, db_aln_begin, db_aln_end, auth_aln_begin, auth_aln_end = line.strip().split("\t")
             pdb_chain = pdb.upper() + '|' + chain
 
             chain_author_to_mmcif[(pdb.upper(), chain_author)] = chain
@@ -104,6 +107,7 @@ def main():
 
     print "Loading PDB-Uniprot mapping..."
     pdb_uniprot = pdb_proteins(pdb_path, pdb_proteins_fname)[0]
+    # sys.exit(0)
 
     with open(template_analysis_fname, 'w') as o:
         o.write("template\tpdb\tA\tB\tprot_A\tprot_B\tcomplex_type\tbs_lenA\tncontactsA\tbs_lenB\tncontactsB\n")

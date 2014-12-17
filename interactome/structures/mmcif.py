@@ -85,6 +85,62 @@ class mmCifFile(Struct):
         9  5 3AZM I 1 ? 146 ? 3AZM   1   146 1   146
         10 5 3AZM J 1 ? 146 ? 3AZM   147 292 147 292
         """
+
+        """
+        _struct_ref_seq.align_id 
+        _struct_ref_seq.ref_id 
+        _struct_ref_seq.pdbx_PDB_id_code 
+        _struct_ref_seq.pdbx_strand_id 
+        _struct_ref_seq.seq_align_beg 
+        _struct_ref_seq.pdbx_seq_align_beg_ins_code 
+        _struct_ref_seq.seq_align_end 
+        _struct_ref_seq.pdbx_seq_align_end_ins_code 
+        _struct_ref_seq.pdbx_db_accession 
+        _struct_ref_seq.db_align_beg 
+        _struct_ref_seq.db_align_end 
+        _struct_ref_seq.pdbx_auth_seq_align_beg 
+        _struct_ref_seq.pdbx_auth_seq_align_end 
+        1  1 3B5N A 2 ? 61 ? P31109 27  86  27  86  
+        2  2 3B5N B 1 ? 69 ? P32867 189 257 189 257 
+        3  3 3B5N C 3 ? 69 ? P40357 433 499 433 499 
+        4  4 3B5N D 3 ? 64 ? P40357 589 650 589 650 
+        5  1 3B5N E 2 ? 61 ? P31109 27  86  27  86  
+        6  2 3B5N F 1 ? 69 ? P32867 189 257 189 257 
+        7  3 3B5N G 3 ? 69 ? P40357 433 499 433 499 
+        8  4 3B5N H 3 ? 64 ? P40357 589 650 589 650 
+        9  1 3B5N I 2 ? 61 ? P31109 27  86  27  86  
+        10 2 3B5N J 1 ? 69 ? P32867 189 257 189 257 
+        11 3 3B5N K 3 ? 69 ? P40357 433 499 433 499 
+        12 4 3B5N L 3 ? 64 ? P40357 589 650 589 650 
+        """
+
+        # This one is a very complex case with insertions/deletions:
+        # http://www.pdb.org/pdb/explore/remediatedSequence.do?params.desiredSequenceRnsStr=SEQRES&params.showDbRefRulerIfPossible=false&structureId=1UX4
+        # Resiues 1412 ..5 residues missing.. 1417
+
+        """
+        loop_
+        _struct_ref_seq.align_id 
+        _struct_ref_seq.ref_id 
+        _struct_ref_seq.pdbx_PDB_id_code 
+        _struct_ref_seq.pdbx_strand_id 
+        _struct_ref_seq.seq_align_beg 
+        _struct_ref_seq.pdbx_seq_align_beg_ins_code 
+        _struct_ref_seq.seq_align_end 
+        _struct_ref_seq.pdbx_seq_align_end_ins_code 
+        _struct_ref_seq.pdbx_db_accession 
+        _struct_ref_seq.db_align_beg 
+        _struct_ref_seq.pdbx_db_align_beg_ins_code 
+        _struct_ref_seq.db_align_end 
+        _struct_ref_seq.pdbx_db_align_end_ins_code 
+        _struct_ref_seq.pdbx_auth_seq_align_beg 
+        _struct_ref_seq.pdbx_auth_seq_align_end 
+        1 1 1UX4 A 1  ? 61  ? P41832 1352 ? 1412 ? 1352 1412 
+        2 1 1UX4 A 62 ? 410 ? P41832 1417 ? 1765 ? 1417 1765 
+        3 1 1UX4 B 1  ? 61  ? P41832 1352 ? 1412 ? 2352 2412 
+        4 1 1UX4 B 62 ? 410 ? P41832 1417 ? 1765 ? 2417 2765 
+        """
+
         if self.block is None:
             raise Exception("CIF structure not loaded")
 
@@ -105,9 +161,17 @@ class mmCifFile(Struct):
             uniprot = ref.getValue("pdbx_db_accession", i)
             if uniprot == self.code.upper():
                 uniprot = ''
-            begin = int(ref.getValue("pdbx_auth_seq_align_beg", i))
-            end = int(ref.getValue("pdbx_auth_seq_align_end", i))
-            chain_protein_mapping[chain] = ChainProteinMap(chain_author=chain_author, uniprot=uniprot, begin=begin, end=end)
+            seq_aln_begin = int(ref.getValue("seq_align_beg", i))
+            seq_aln_end = int(ref.getValue("seq_align_end", i))
+            db_aln_begin = int(ref.getValue("db_align_beg", i))
+            db_aln_end = int(ref.getValue("db_align_end", i))
+            auth_aln_begin = int(ref.getValue("pdbx_auth_seq_align_beg", i))
+            auth_aln_end = int(ref.getValue("pdbx_auth_seq_align_end", i))
+            chain_protein_mapping[chain] = ChainProteinMap(
+                chain_author=chain_author, uniprot=uniprot,
+                seq_aln_begin=seq_aln_begin, seq_aln_end=seq_aln_end,
+                db_aln_begin=db_aln_begin, db_aln_end=db_aln_end,
+                auth_aln_begin=auth_aln_begin, auth_aln_end=auth_aln_end)
         return chain_protein_mapping
 
     def getMetaData(self):
