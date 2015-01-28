@@ -1,0 +1,13 @@
+cmd.read_pdbstr("""\
+ATOM      1  N   ALA A   1      -9.066   6.794   7.355  1.00  0.00           N \
+
+ATOM   1118  HB3 ALA A  82      -5.202  -4.400  -5.486  1.00  0.00           H \
+""", "chainA")
+cmd.hide("all")
+cmd.color('grey70', "chainA")
+cmd.show('ribbon', "chainA")
+cmd.select("e2fmcA1", "c. A & i. 1-82")
+cmd.center("e2fmcA1", state=0, origin=1)
+cmd.zoom("e2fmcA1", animate=-1)
+preset.publication("e2fmcA1")
+cmd.disable("e2fmcA1")

@@ -1,0 +1,6 @@
+site_name: Interactome project
+pages:
+- [index.md, Home]
+- [report.txt, Report]
+- [about.md, About]
+theme: readthedocs

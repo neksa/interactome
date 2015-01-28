@@ -1,0 +1,79 @@
+% Residue-level PPI prediction benchmark
+
+# Benchmark setup
+
+We use observed binding site residues in Yeast structures as a golden set and predict these binding site residues using other structures.
+
+### Dataset
+Delta-BLAST E-values <0.001
+Binding site coverage of at least 50% is required.
+We only consider complexes that are of the same type as the templates, e.f. Homo or Hetero.
+
+## Scores
+### Our score
+Distance-dependent potential, bin size = 1A, from 3 to 15A.
+
+### Skolnick
+(Lu and Skolnick)
+Pairwise potential without distance dependence, applied to Calpha pairs in the range up to 15A.
+
+### DFIRE
+(Zhang)
+Distance-dependent atomistic potential defined in the range of 2A to 30A.
+Applied to Calpha atom pairs in the range of 15A.
+
+### Random
+Random scores are assigned to interfaces.
+We use the score of the maximal-scoring interface template. Therefore,  proteins with many templates may have higheer scores.
+
+### Binding site (bs) similarity
+Each binding site in query is aligned to template. Binding site similarity is the percentage of positively scoring positions (according to BLOSUM62) in the alignments.
+We take minimum of the similarities of two binding sites.
+
+### Total sequence identity
+Each binding site in query is aligned to template. Total sequence alignment identity considers the whole alignment
+We take minimum of the identities of two binding sites.
+
+## Calibration
+
+Calibration dataset includes the original Yeast structures (by total sequence identity >98%).
+So these structures can be used as templates. Self-hits and the corresponding binding site residues are, therefore, considered to be the Golden set for the benchmark.
+
+# Results
+
+### No filters
+
+GOOD 12949
+BAD 113021
+PRED 92833
+
+![Figure1](fig/bench_resi/_yeast_residues_combined.png)
+
+### Only dimeric templates
+
+GOOD 12949
+BAD 113021
+PRED 51077
+
+![Figure2](fig/bench_resi/dimers_yeast_residues_combined.png)
+
+
+### Twilight zone (<25% total identity)
+
+GOOD 12949
+BAD 113021
+PRED 27210
+
+![Figure4](fig/bench_resi/twilight_yeast_residues_combined.png)
+
+
+
+### Twilight zone (<25% total identity) and only dimeric templates
+
+GOOD 12949
+BAD 113021
+PRED 51287
+
+![Figure3](fig/bench_resi/twilight_dimers_yeast_residues_combined.png)
+
+
