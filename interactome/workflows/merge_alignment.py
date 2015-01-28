@@ -51,6 +51,10 @@ def convert_alignments(in_fname, out_fname):
 
 def align(pdbchain, qseq, hseq, qfrom, hfrom, sites):
     """
+    NOTE: there is an alignment problem between SEQRES in PDB and gi SEQRES in NCBI used in BLAST/Delta-BLAST. Thus the residues may be off.
+          For safety, we can completely exclude these problematic alignments. (Alignment contains @ character)
+          This should be fixed by NOT using NCBI's BLAST database, but building it ourselves.
+
     according to alignment qseq/hseq what is the substitution of the interface residue int_resn/int_resi
     is it covered by the alignment at all? if not => '*'
     is there problem with seqres-template alignment => '@'
@@ -208,88 +212,100 @@ def merge_bs_alignments(fname_in, fname_out):
     #         template, pdb, A, B, prot_A, prot_B, complex_type = line.strip().split("\t")
     #         complex_types[template] = complex_type
 
+    # Important: Assume that fname_in is sorted by query protein id. We can optimize a stream processing then
+
     blosum = read_BLOSUM_matrix("/Users/agoncear/projects/Interactome/interactome/sequences/BLOSUM62")
 
-    merged_bs_aln = defaultdict(list)
-    c = 0
     with open(fname_in, 'r') as f, open(fname_out, 'w') as o:
-        for line in islice(f, 1, None):
-            query, template, identical, positive, aln_len, site = line.strip().split("\t")
-            c += 1
-            if c % 100000 == 0:
-                print c
-            # if c % 10000 == 0:
-            #     break
+        o.write("query\ttemplate\tidentical\tpositive\taln_len\tbs_len\tbs_covered\tbs_aligned\tbs_identical\tbs_positive\tbs_contacts\tbs_BLOSUM\tbs_score1\tsite\n")
 
-            # 0       1         2 (0)     3 (1)   4 (2)   5 (3)
-            identical = int(identical)
-            positive = int(positive)
-            aln_len = int(aln_len)
-            residues = []
-            # print query, template,
-            merged = False
-            for s in site.split(";"):
-                residues.append(s.split(","))  # 0:X, 1:X', 2:N, 3:Y, 4:Y'
-            # print "RRRR", residues
-            for i, alignment in enumerate(merged_bs_aln[(query, template)]):
-                residue_overlaps = 0
-                different_bs = False
-                new_aln = copy.copy(alignment)
+        def sub_protein_generator(handle):
+            prevquery = None
+            block = []
+            for c, line in enumerate(islice(handle, 1, None)):
+                fields = line.strip().split("\t")
+                if c % 100000 == 0:
+                    print c
+                if prevquery is not None and fields[0] != prevquery:
+                    yield block
+                    block = []
+                block.append(fields)
+                prevquery = fields[0]
+            if len(block) > 0:
+                yield block
 
-                if len(alignment[3]) != len(residues):
-                    # it's a different binding site - don't merge
-                    different_bs = True
-                    # print "diff bs",
-                    break
+        for block in sub_protein_generator(f):
+            merged_bs_aln = defaultdict(list)
+            for fields in block:
+                # 0       1         2 (0)     3 (1)   4 (2)   5 (3)
+                query, template, identical, positive, aln_len, site = fields
+                identical = int(identical)
+                positive = int(positive)
+                aln_len = int(aln_len)
+                residues = []
+                # print query, template,
+                merged = False
+                for s in site.split(";"):
+                    residues.append(s.split(","))  # 0:X, 1:X', 2:N, 3:Y, 4:Y'
+                # print "RRRR", residues
+                for i, alignment in enumerate(merged_bs_aln[(query, template)]):
+                    residue_overlaps = 0
+                    different_bs = False
+                    # new_aln = copy.copy(alignment)
+                    new_aln = alignment
 
-                for j, r in enumerate(residues):
-                    # compare site residues
-                    # print alignment[3], j
-                    # print alignment[3][j]
-                    if alignment[3][j][0] != r[0] or alignment[3][j][1] != r[1]:
+                    if len(alignment[3]) != len(residues):
                         # it's a different binding site - don't merge
-                        # print "diff bs",
                         different_bs = True
                         break
 
-                    aln_char = alignment[3][j][3]  # alignment[3] is site                    
-                    this_char = r[3]
-                    this_resi = r[4]
-                    if aln_char != '*' and this_char != '*':
-                        residue_overlaps += 1
-                    elif aln_char == '*' and this_char != '*' and this_char != '@':
-                        new_aln[3][j][3] = this_char
-                        new_aln[3][j][4] = this_resi
+                    for j, r in enumerate(residues):
+                        # compare site residues
+                        # print alignment[3], j
+                        # print alignment[3][j]
+                        if alignment[3][j][0] != r[0] or alignment[3][j][1] != r[1]:
+                            # it's a different binding site - don't merge
+                            # print "diff bs",
+                            different_bs = True
+                            break
 
-                if residue_overlaps == 0 and different_bs is False:
-                    merged_bs_aln[(query, template)][i] = copy.copy(new_aln)
-                    merged_bs_aln[(query, template)][i][0] += identical
-                    merged_bs_aln[(query, template)][i][1] += positive
-                    merged_bs_aln[(query, template)][i][2] += aln_len
-                    merged = True
-                    # print "Merged"
-                    break
-            if not merged:
-                # print "Added"
-                merged_bs_aln[(query, template)].append([identical, positive, aln_len, residues])
+                        aln_char = alignment[3][j][3]  # alignment[3] is site                    
+                        this_char = r[3]
+                        this_resi = r[4]
+                        if aln_char != '*' and this_char != '*':
+                            residue_overlaps += 1
+                        elif aln_char == '*' and this_char != '*' and this_char != '@':
+                            new_aln[3][j][3] = this_char
+                            new_aln[3][j][4] = this_resi
 
-        # pp = pprint.PrettyPrinter(depth=6)
-        o.write("query\ttemplate\tidentical\tpositive\taln_len\tbs_len\tbs_covered\tbs_aligned\tbs_identical\tbs_positive\tbs_contacts\tbs_BLOSUM\tbs_score1\tsite\n")
-        for (query, template), bs_alignments in merged_bs_aln.iteritems():
-            for bs_alignment in bs_alignments:
-                # pp.pprint(tuple(bs_alignment))
-                identical, positive, aln_len, merged_site = tuple(bs_alignment)
+                    if residue_overlaps == 0 and different_bs is False:
+                        merged_bs_aln[(query, template)][i] = new_aln  # copy.copy(new_aln)
+                        merged_bs_aln[(query, template)][i][0] += identical
+                        merged_bs_aln[(query, template)][i][1] += positive
+                        merged_bs_aln[(query, template)][i][2] += aln_len
+                        merged = True
+                        # print "Merged"
+                        break
+                if not merged:
+                    # print "Added"
+                    merged_bs_aln[(query, template)].append([identical, positive, aln_len, residues])
 
-                bs_len, bs_covered, bs_aligned, bs_identical, bs_positive, bs_contacts, bs_BLOSUM, bs_score1 = bs_properties(blosum, merged_site)
+            # pp = pprint.PrettyPrinter(depth=6)
+            for (query, template), bs_alignments in merged_bs_aln.iteritems():
+                for bs_alignment in bs_alignments:
+                    # pp.pprint(tuple(bs_alignment))
+                    identical, positive, aln_len, merged_site = tuple(bs_alignment)
 
-                m_site = ["{},{},{},{},{}".format(*s) for s in merged_site]
-                merged_site_str = ";".join(m_site)
+                    bs_len, bs_covered, bs_aligned, bs_identical, bs_positive, bs_contacts, bs_BLOSUM, bs_score1 = bs_properties(blosum, merged_site)
 
-                o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                        query, template, identical, positive, aln_len,
-                        bs_len, bs_covered, bs_aligned, bs_identical, bs_positive,
-                        bs_contacts, bs_BLOSUM, bs_score1,
-                        merged_site_str))
+                    m_site = ["{},{},{},{},{}".format(*s) for s in merged_site]
+                    merged_site_str = ";".join(m_site)
+
+                    o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                            query, template, identical, positive, aln_len,
+                            bs_len, bs_covered, bs_aligned, bs_identical, bs_positive,
+                            bs_contacts, bs_BLOSUM, bs_score1,
+                            merged_site_str))
 
 
 if __name__ == '__main__':
