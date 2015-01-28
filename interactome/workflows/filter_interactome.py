@@ -203,7 +203,7 @@ def iter_uniprot():
                                 # print "SSS", d.split("=")
                                 descr = d.split("=")[1][:-1]
                     uniprot_rec = UniprotRec._make((id_str, accessions, gene, descr))
-                    print uniprot_rec
+                    # print uniprot_rec
                     yield uniprot_rec
                 i = ""
                 rec = defaultdict(str)

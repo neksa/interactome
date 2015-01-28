@@ -91,18 +91,19 @@ def load_templates(pdbs):
     d = "/Users/agoncear/projects/Interactome/Workflow/Structures/"
     fname_pdb_proteins = d + "pdb_proteins.tab"
     fname_templates = d + "pdb_templates_5A.tab"
-    pdb_protein = {}
+    # pdb_protein = {}
+    pdb_protein = defaultdict(list)
     goodres = defaultdict(set)
 
     with open(fname_pdb_proteins) as f_pdb, open(fname_templates) as f_template:
         for line in islice(f_pdb, 1, None):
             (pdb, chain, chain_author, uniprot,
-                seq_aln_begin, seq_aln_end,
+                seq_aln_begin, seq_aln_begin_ins, seq_aln_end, seq_aln_end_ins,
                 db_aln_begin, db_aln_end,
                 auth_aln_begin, auth_aln_end) = line.strip().split("\t")
-            if uniprot == '':
-                continue
-            pdb_protein[(pdb, chain)] = (uniprot, int(seq_aln_begin), int(db_aln_begin))
+            # if uniprot == '':
+            #     continue
+            pdb_protein[(pdb, chain)].append((uniprot, int(seq_aln_begin), int(seq_aln_end), int(db_aln_begin), int(db_aln_end)))
 
         for line in f_template:
             pdb, chainA, chainB, siteA, siteB = line.strip().split("\t")
@@ -110,54 +111,94 @@ def load_templates(pdbs):
                 continue
             A = chainA.split("_")[0]
             B = chainB.split("_")[0]
-            try:
-                uniprotA, seq_offsetA, db_offsetA = pdb_protein[(pdb, A)]
-            except:
-                # print("Uniprot ID unknown for {} {}".format(pdb, A))
-                continue
 
-            try:
-                uniprotB, seq_offsetB, db_offsetB = pdb_protein[(pdb, B)]
-            except:
-                # print("Uniprot ID unknown for {} {}".format(pdb, B))
-                continue
+            resmapA = {}
+            for uniprotA, seq_offsetA, seq_endA, db_offsetA, db_endA in pdb_protein[(pdb, A)]:
+                resmapA[(seq_offsetA, seq_endA)] = uniprotA, db_offsetA
+
+            resmapB = {}
+            for uniprotB, seq_offsetB, seq_endB, db_offsetB, db_endB in pdb_protein[(pdb, B)]:
+                resmapB[(seq_offsetB, seq_endB)] = uniprotB, db_offsetB
+
+            # examples of Uniprot-PDB discrepancies: 1a6r (Nterm), 4c0b (Cterm) and 4c46 (Completely artificial sequence)
+            # if pdb == "1a6r":
+            #     print "MAP A", A, resmapA
+            #     print "MAP B", B, resmapB
 
             for s in siteA.split(";"):
                 resn, resi, ncontacts = s.split(",")
+                resi = int(resi)
                 if int(ncontacts) == 1:
                     continue
-                uniprot_resi = int(resi) - seq_offsetA + db_offsetA
-                goodres[uniprotA].add(uniprot_resi)
+                # uniprot_resi = int(resi) - seq_offsetA + db_offsetA
+                # goodres[uniprotA].add(uniprot_resi)
+
+                ok = False
+                for key, val in resmapA.iteritems():
+                    start, end = key
+                    if start <= resi <= end:
+                        uniprotA, db_offsetA = val
+                        # skip unknown proteins
+                        if uniprotA == '':
+                            ok = True
+                            continue
+                        uniprot_resi = int(resi) - start + db_offsetA
+                        goodres[uniprotA].add(uniprot_resi)
+                        ok = True
+                if not ok:
+                    # print "UNKNOWN", pdb, chainA, resn, resi
+                    pass
                 # if uniprotA == "P25604":
                 #     print pdb, chainA, A, uniprotA, resn, resi, "offset", offsetA, uniprot_resi
 
             for s in siteB.split(";"):
                 resn, resi, ncontacts = s.split(",")
+                resi = int(resi)
                 if int(ncontacts) == 1:
                     continue
-                uniprot_resi = int(resi) - seq_offsetB + db_offsetB
-                goodres[uniprotB].add(uniprot_resi)
+                # uniprot_resi = int(resi) - seq_offsetB + db_offsetB
+                # goodres[uniprotB].add(uniprot_resi)
+                ok = False
+                for key, val in resmapB.iteritems():
+                    start, end = key
+                    if start <= resi <= end:
+                        uniprotB, db_offsetB = val
+                        # skip unknown proteins
+                        if uniprotB == '':
+                            ok = True
+                            continue
+                        uniprot_resi = int(resi) - start + db_offsetB
+                        goodres[uniprotB].add(uniprot_resi)
+                        ok = True
+                if not ok:
+                    # print "UNKNOWN", pdb, chainB, resn, resi
+                    pass
+
     return goodres
 
 
-def get_predicted_residues(matches_fname, locus_uniprot, goodres, uniprot_nresidues, pdbs=None):
+def get_predicted_residues(
+        matches_fname, locus_uniprot, goodres, uniprot_nresidues,
+        pdbs=None, scoring="score1", calibration=False, calib_fname=None, dump_fname=None,
+        threshold_identity=1.0, threshold_nsubunits=None, same_complex_type=None):
     fname_pdb_proteins = "/Users/agoncear/projects/Interactome/Workflow/Structures/pdb_proteins.tab"
-    pdb_protein = {}
+    pdb_protein = defaultdict(list)
     with open(fname_pdb_proteins) as f_pdb:
         for line in islice(f_pdb, 1, None):
             (pdb, chain, chain_author, uniprot,
-                seq_aln_begin, seq_aln_end,
+                seq_aln_begin, seq_aln_begin_ins, seq_aln_end, seq_aln_end_ins,
                 db_aln_begin, db_aln_end,
                 auth_aln_begin, auth_aln_end) = line.strip().split("\t")
             if uniprot == '':
                 continue
-            pdb_protein[(pdb, chain)] = (uniprot, int(seq_aln_begin), int(db_aln_begin))
+            pdb_protein[(pdb, chain)].append((uniprot, int(seq_aln_begin), int(db_aln_begin)))
 
     predres = defaultdict(lambda: defaultdict(float))
 
     pred_dump = {
-        'model': defaultdict(lambda: defaultdict(float)),
-        'model_type': defaultdict(lambda: defaultdict(float)),
+        'score': defaultdict(lambda: defaultdict(float)),
+        'template_type': defaultdict(lambda: defaultdict(float)),
+        'template_nsubunits': defaultdict(lambda: defaultdict(float)),
         'model_size': defaultdict(lambda: defaultdict(float)),
         'model_bs_size': defaultdict(lambda: defaultdict(float)),
         'bs_sim': defaultdict(lambda: defaultdict(float)),
@@ -166,19 +207,33 @@ def get_predicted_residues(matches_fname, locus_uniprot, goodres, uniprot_nresid
     }
 
     with open(matches_fname) as f:
-        for line in islice(f, 1, None):
+        for c, line in enumerate(islice(f, 1, None)):
+            if c % 100000 == 0:
+                print c
             try:
-                queryA, queryB, tpl, query_type, template_type, \
+                # # file_format = 1  # single scoring
+                file_format = 2  # multiscoring with number of subunits
+
+                # if file_format == 1:
+                #     queryA, queryB, tpl, query_type, template_type, \
+                #         SC1, SC2, SC3, SC4, SC5, SC6, \
+                #         identicalA, positiveA, aln_lenA, bs_lenA, bs_coveredA, bs_alignedA, bs_identicalA, bs_positiveA, bs_contactsA, bs_BLOSUMA, bs_score1A, \
+                #         identicalB, positiveB, aln_lenB, bs_lenB, bs_coveredB, bs_alignedB, bs_identicalB, bs_positiveB, bs_contactsB, bs_BLOSUMB, bs_score1B, \
+                #         siteA, siteB = line.strip().split("\t")
+                #     SC1, SC2, SC3, SC4, SC5, SC6 = map(float, (SC1, SC2, SC3, SC4, SC5, SC6))
+                #     # zscore, model_minus_avg, score_model = SC1, SC2, SC3
+                #     template_nsubunits = 0
+
+                queryA, queryB, tpl, query_type, template_type, template_nsubunits, \
                     SC1, SC2, SC3, SC4, SC5, SC6, \
                     identicalA, positiveA, aln_lenA, bs_lenA, bs_coveredA, bs_alignedA, bs_identicalA, bs_positiveA, bs_contactsA, bs_BLOSUMA, bs_score1A, \
                     identicalB, positiveB, aln_lenB, bs_lenB, bs_coveredB, bs_alignedB, bs_identicalB, bs_positiveB, bs_contactsB, bs_BLOSUMB, bs_score1B, \
                     siteA, siteB = line.strip().split("\t")
-                    # _, _, _, _, \
-
-                score_template_full, score_template, score_model, scaled_score_template_full, scaled_score_template, scaled_score = map(
-                    float, (SC1, SC2, SC3, SC4, SC5, SC6))
-
-                zscore, model_minus_avg = score_template_full, score_template
+                SC1, SC2, SC3, SC4, SC5, SC6 = map(float, (SC1, SC2, SC3, SC4, SC5, SC6))
+                # Convert Energies to scores (the higher - the better)
+                SC2 = 0.0 - SC2
+                SC3 = 0.0 - SC3
+                template_nsubunits = int(template_nsubunits)
 
                 identicalA, positiveA, aln_lenA, bs_lenA, bs_coveredA, bs_alignedA, bs_identicalA, bs_positiveA, bs_contactsA, bs_BLOSUMA, bs_score1A = map(
                     float, (identicalA, positiveA, aln_lenA, bs_lenA, bs_coveredA, bs_alignedA, bs_identicalA, bs_positiveA, bs_contactsA, bs_BLOSUMA, bs_score1A))
@@ -189,9 +244,6 @@ def get_predicted_residues(matches_fname, locus_uniprot, goodres, uniprot_nresid
                 # YMR101C SRT1 SGDID:S000004707, Chr XIII from....
                 queryA = queryA.split()[0]
                 queryB = queryB.split()[0]
-
-                # scoring system
-                # score = model_minus_avg  # SCORE(MODEL) - AVG(DECOYS)
 
                 bs_similarityA = bs_positiveA / bs_lenA  # BS SIMILARITY
                 bs_similarityB = bs_positiveB / bs_lenB  # BS SIMILARITY
@@ -209,40 +261,65 @@ def get_predicted_residues(matches_fname, locus_uniprot, goodres, uniprot_nresid
                 full_identityB = identicalB / aln_lenB
                 full_identity = min(full_identityA, full_identityB)  # FULL SEQUENCE ALN
 
-                # score = bs_similarity
+                # print SC1, SC3, SC3, SC4, SC5, SC6, bs_similarity
+                scoring_map = {
+                    'score1': SC1,  # was: zscore. now: model_score
+                    'score2': SC2,  # was: model_minus_decoy_avg, now: 0-SKOLNICK potential
+                    'score3': SC3,  # was: model_score, now: 0-DFIRE
+                    'score4': SC4,
+                    'score5': SC5,
+                    'score6': SC6,
 
-                # score = 0.067 * model_minus_avg + 5.07 * bs_similarity
-                score = 0.067 * model_minus_avg * 5.07 * bs_similarity
+                    'random': random.random(),
+                    'bs_similarity': bs_similarity,
+                    'full_identity': full_identity,
+                    'score_combined1': 0.067 * SC1 * 5.07 * bs_similarity,
+                    'score_combined2': (1-full_identity) * 0.067 * SC1 + full_identity * 5.07 * bs_similarity,
+                }
 
-                # if score < 0.98:
-                #     continue
+                score = scoring_map[scoring]
+                # print "SCORE", score
 
-                # quality control:
-                if query_type != template_type:
-                    continue
-                # if bs_positiveA / bs_lenA < 0.2:
-                #     continue
-                # if bs_positiveB / bs_lenB < 0.2:
-                #     continue
+                # scoring system
+                # score = model_minus_avg  # SCORE(MODEL) - AVG(DECOYS)
 
-                # make sure the template is not same as query (close homologs - by identity)
-                if identicalA / aln_lenA > 0.90:
-                    continue
-                if identicalB / aln_lenB > 0.90:
-                    continue
+                if same_complex_type is True:
+                    if query_type != template_type:
+                        continue
 
-                # we can further remove all yeast paralogous structures and only use orthologs
-                if pdbs is not None:
-                    if tpl.split("|")[0] in pdbs:
+                if threshold_nsubunits is not None:
+                    if not (threshold_nsubunits[0] <= template_nsubunits <= threshold_nsubunits[1]):
+                        continue
+
+                # print "OK"
+
+                # Unless in calibration mode: make sure the template is not same as query (close homologs - by identity)
+                if calibration is False:
+                    # threshold_identity = 1.0
+                    # threshold_identity = 0.90
+                    # threshold_identity = 0.30
+                    if identicalA / aln_lenA > threshold_identity:
+                        continue
+                    if identicalB / aln_lenB > threshold_identity:
+                        continue
+                    # we can further remove all yeast paralogous structures and only use orthologs
+                    if pdbs is not None:
+                        if tpl.split("|")[0] in pdbs:
+                            continue
+                else:
+                    if full_identity < 0.98:
                         continue
 
                 # make sure that Uniprot IDs for the predicted residues have good residues
                 # otherwise residue predictions will not be comparable
 
                 ####### A ########
-                if queryA not in locus_uniprot:
-                    continue
-                uniprot = locus_uniprot[queryA]
+                uniprot = queryB
+                if file_format == 1:
+                    if queryA not in locus_uniprot:
+                        continue
+                    uniprot = locus_uniprot[queryA]
+
                 if uniprot not in goodres:
                     continue
                 # print "A", siteA
@@ -270,27 +347,26 @@ def get_predicted_residues(matches_fname, locus_uniprot, goodres, uniprot_nresid
                     resi = int(x[4])  # query residue index
                     if resi not in predres[uniprot] or predres[uniprot][resi] < score:
                         predres[uniprot][resi] = score
-                    # DUMP:
+                        # print "PREDRES", uniprot, resi, predres[uniprot][resi]
 
-                    if resi not in pred_dump['model'][uniprot] or pred_dump['model'][uniprot][resi] < model_minus_avg:
-                        pred_dump['model'][uniprot][resi] = model_minus_avg
-                        pred_dump['model_type'][uniprot][resi] = query_type  # == complex_type
+
+                    # DUMP:
+                    if resi not in pred_dump['score'][uniprot] or pred_dump['score'][uniprot][resi] < score:
+                        pred_dump['score'][uniprot][resi] = score
+                        pred_dump['template_type'][uniprot][resi] = template_type
+                        pred_dump['template_nsubunits'][uniprot][resi] = template_nsubunits
                         pred_dump['model_bs_size'][uniprot][resi] = len(sB)
                         pred_dump['model_size'][uniprot][resi] = uniprot_nresidues[uniprot]
-                    
-                    if resi not in pred_dump['bs_sim'][uniprot] or pred_dump['bs_sim'][uniprot][resi] < bs_similarityA:
                         pred_dump['bs_sim'][uniprot][resi] = bs_similarityA
-
-                    if resi not in pred_dump['bs_aln_sim'][uniprot] or pred_dump['bs_aln_sim'][uniprot][resi] < aligned_bs_similarityA:
                         pred_dump['bs_aln_sim'][uniprot][resi] = aligned_bs_similarityA
-
-                    if resi not in pred_dump['full_id'][uniprot] or pred_dump['full_id'][uniprot][resi] < full_identityA:
                         pred_dump['full_id'][uniprot][resi] = full_identityA
 
                 ####### same for B ########
-                if queryB not in locus_uniprot:
-                    continue
-                uniprot = locus_uniprot[queryB]
+                uniprot = queryB
+                if file_format == 1:
+                    if queryB not in locus_uniprot:
+                        continue
+                    uniprot = locus_uniprot[queryB]
                 if uniprot not in goodres:
                     continue
                 # print "A", siteA
@@ -306,45 +382,61 @@ def get_predicted_residues(matches_fname, locus_uniprot, goodres, uniprot_nresid
                         predres[uniprot][resi] = score
 
                     # DUMP:
-                    if resi not in pred_dump['model'][uniprot] or pred_dump['model'][uniprot][resi] < model_minus_avg:
-                        pred_dump['model'][uniprot][resi] = model_minus_avg
-                        pred_dump['model_type'][uniprot][resi] = query_type  # == complex_type
+                    if resi not in pred_dump['score'][uniprot] or pred_dump['score'][uniprot][resi] < score:
+                        pred_dump['score'][uniprot][resi] = score
+                        pred_dump['template_type'][uniprot][resi] = template_type
+                        pred_dump['template_nsubunits'][uniprot][resi] = template_nsubunits
                         pred_dump['model_size'][uniprot][resi] = uniprot_nresidues[uniprot]
                         pred_dump['model_bs_size'][uniprot][resi] = len(sB)
-                    
-                    if resi not in pred_dump['bs_sim'][uniprot] or pred_dump['bs_sim'][uniprot][resi] < bs_similarityB:
                         pred_dump['bs_sim'][uniprot][resi] = bs_similarityB
-
-                    if resi not in pred_dump['bs_aln_sim'][uniprot] or pred_dump['bs_aln_sim'][uniprot][resi] < aligned_bs_similarityB:
                         pred_dump['bs_aln_sim'][uniprot][resi] = aligned_bs_similarityB
-
-                    if resi not in pred_dump['full_id'][uniprot] or pred_dump['full_id'][uniprot][resi] < full_identityB:
                         pred_dump['full_id'][uniprot][resi] = full_identityB
 
                 # print queryA, queryB, locus_uniprot[queryA], locus_uniprot[queryB]
-
             except:
                 print "Error reading the whole matches file. Skipping the line with an error"
                 raise
 
-    with open("PREDRES_DUMP.tab", 'w') as o:
-        o.write("label\tuniprot\tresi\tmodel_minus_avg\tbs_similarity\tbs_aln_similarity\tfull_seq_id\tcomplex_type\tprotein_size\tbs_size\n")
-        for uniprot, resi_list in predres.iteritems():
-            for resi in resi_list:
-                label = 0
-                if resi in goodres[uniprot]:
-                    label = 1
-                o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                    label, uniprot, resi,
-                    pred_dump['model'][uniprot][resi],
-                    pred_dump['bs_sim'][uniprot][resi],
-                    pred_dump['bs_aln_sim'][uniprot][resi],
-                    pred_dump['full_id'][uniprot][resi],
-                    pred_dump['model_type'][uniprot][resi],
-                    pred_dump['model_size'][uniprot][resi],
-                    pred_dump['model_bs_size'][uniprot][resi]))
-
+    if calibration is True:
+        with open(calib_fname, 'w') as o:
+            o.write('uniprot\tresi\n')
+            for uniprot, resi_list in predres.iteritems():
+                s = [str(r) for r in resi_list if r in goodres[uniprot]]
+                if len(s) == 0:
+                    continue
+                o.write("{}\t{}\n".format(uniprot, ";".join(s)))
+    else:
+        if dump_fname is not None:
+            with open(dump_fname, 'w') as o:
+                o.write("label\tuniprot\tresi\tscore\tbs_similarity\tbs_aln_similarity\tfull_seq_id\tcomplex_type\tcomplex_nsubunits\tprotein_size\tbs_size\n")
+                for uniprot, resi_list in predres.iteritems():
+                    for resi in resi_list:
+                        label = 0
+                        if resi in goodres[uniprot]:
+                            label = 1
+                        o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                            label, uniprot, resi,
+                            pred_dump['score'][uniprot][resi],
+                            pred_dump['bs_sim'][uniprot][resi],
+                            pred_dump['bs_aln_sim'][uniprot][resi],
+                            pred_dump['full_id'][uniprot][resi],
+                            pred_dump['template_type'][uniprot][resi],
+                            pred_dump['template_nsubunits'][uniprot][resi],
+                            pred_dump['model_size'][uniprot][resi],
+                            pred_dump['model_bs_size'][uniprot][resi]))
     return predres
+
+
+def load_calibration(fname):
+    calibration = defaultdict(set)
+    with open(fname) as f:
+        for line in islice(f, 1, None):
+            x, y = line.split("\t")
+            y = y.strip()
+            if len(y) == 0:
+                continue
+            calibration[x] = set(map(int, y.split(";")))
+    return calibration
 
 # def load_vidal_interactions(fname):
 #     interactions = []
@@ -368,6 +460,26 @@ def scored_residue_labels(predres, goodres, badresnum=None):
             true_labels.append(label)
             scores.append(score)
     return true_labels, scores
+
+
+# def add_pseudo_scores(labels, predres, goodres, badresnum):
+#     """
+#     in goodres, not in predres (FN) => min score, label 1
+#     badresnum - (goodres | predres) => min score, label 0
+#     in predres TP or FP => real score
+#     """
+#     lab, scores = labels
+#     min_score = min(scores)
+#     max_score = max(scores)
+#     new_lab = []
+#     new_scores = []
+#     # galse negatives
+#     for uniprot in goodres:
+#         for r in goodres[uniprot]:
+#             if r not in predres[uniprot]:
+#                 new_lab.append(1)
+#                 new_scores.append(min_score)
+#         for r in goodres[uniprot] | predres[uniprot]:
 
 
 def plots_sens_spec(r, fname, title=None):
@@ -444,14 +556,29 @@ def plots_score(predres, goodres, fname, title=None):
 if __name__ == '__main__':
     d = "/Users/agoncear/projects/Interactome/Workflow"
     roc_d = d + "/Benchmarks/Yeast_residues"
-    matches_fname = d + "/Alignments/matches_yeast.tab"
+    # matches_fname = d + "/Alignments/matches_yeast.tab"
+    matches_fname = d + "/Alignments/matches_Scerevisiae.tab"
+    calib_fname = roc_d + "/CALIB.tab"
 
     locus_uniprot, uniprot_nresidues = load_uniprot()
     pdbs = load_structures()
-    goodres = load_templates(pdbs)
-    # print goodres
-    # print goodresnum
 
+    try:
+        with open(calib_fname) as f:
+            pass
+    except:
+        print "Calibrating..."
+        goodres_ = load_templates(pdbs)  # Contains error
+        get_predicted_residues(
+            matches_fname, locus_uniprot, goodres_, uniprot_nresidues,
+            pdbs=None, calibration=True, calib_fname=calib_fname,
+            scoring='score3',
+            threshold_identity=1.0, threshold_nsubunits=None, same_complex_type=True)
+
+    print "Loading calibration..."
+    goodres = load_calibration(calib_fname)
+
+    print "Evaluating..."
     goodresnum = {}
     badresnum = {}
     for uniprot in goodres.iterkeys():
@@ -461,18 +588,56 @@ if __name__ == '__main__':
             continue
         badresnum[uniprot] = uniprot_nresidues[uniprot] - goodresnum[uniprot]
 
-    # predres = get_predicted_residues(matches_fname, locus_uniprot, goodres, pdbs)
-    predres = get_predicted_residues(matches_fname, locus_uniprot, goodres, uniprot_nresidues, pdbs=None)
-    predresnum = {uniprot: len(resdict.keys()) for uniprot, resdict in predres.iteritems()}
-    # print predres
-
     print "GOOD", sum(goodresnum.itervalues())
     print "BAD", sum(badresnum.itervalues())
-    print "PRED", sum(predresnum.itervalues())
 
-    labels = scored_residue_labels(predres, goodres, badresnum)
-    roc(labels, roc_d + "/roc_score.png", "Yeast, binding site residues in structures")
-    plots_sens_spec(labels, roc_d + "/scores_.png", "Scores")
+    # for prefix in ('', 'dimers', 'twilight', 'twilight_dimers'):
+    for prefix in ('', 'twilight', 'dark', ):
+        scoring_labels = []
+        # scorings = ("score1", "score2", "score3", "random", "bs_similarity", "full_identity")
+        # scoring_legends = 'Our score', 'Skolnick', 'DFIRE', 'random', 'bs similarity', 'tot. seq. identity'
+        # scorings = ("score_combined1", "score_combined2", "score1", "score2", "score3", "bs_similarity")
+        scorings = ("score_combined2", "score2", "score3", "bs_similarity")
+        # scoring_legends = ('comb1', 'comb2', 'Our score', 'Skolnick', 'DFIRE', 'bs similarity')
+        scoring_legends = ('Our combined score', 'Skolnick potential', 'DFIRE potential', 'BS similarity')
+        for scoring in scorings:
+            # scoring = "score1"
+            print "Predicting with (scoring = {}, prefix = {})".format(scoring, prefix)
+
+            TID = 0.98
+            if prefix.startswith("twilight"):
+                TID = 0.25
+
+            if prefix.startswith("dark"):
+                TID = 0.15
+
+            TSUB = None
+            if prefix.endswith("dimers"):
+                TSUB = (2, 2)
+
+            predres = get_predicted_residues(
+                matches_fname, locus_uniprot, goodres, uniprot_nresidues,
+                pdbs=None, calibration=False, calib_fname=None,
+                scoring=scoring,
+                threshold_identity=TID, threshold_nsubunits=TSUB, same_complex_type=True)
+
+            predresnum = {uniprot: len(resdict.keys()) for uniprot, resdict in predres.iteritems()}
+
+            print "GOOD", sum(goodresnum.itervalues())
+            print "BAD", sum(badresnum.itervalues())
+            print "PRED", sum(predresnum.itervalues())
+
+            labels = scored_residue_labels(predres, goodres, badresnum)
+            scoring_labels.append(labels)
+            roc(labels, roc_d + "/{}_{}_ROC.png".format(prefix, scoring), "Yeast benchmark, {} {}".format(prefix, scoring))
+            plots_sens_spec(labels, roc_d + "/{}_{}_SS.png".format(prefix, scoring), "Yeast benchmark, {} {}".format(prefix, scoring))
+
+        multiroc(
+            scoring_labels,
+            scoring_legends,
+            roc_d + "/{}_yeast_residues_combined.png".format(prefix),  #.eps
+            "Yeast residue-level benchmark")
+
     # plots_score(predres, goodres, roc_d + "/scores.png", "Scores")
 
     # # Uniprot pairs

@@ -38,8 +38,8 @@ table(f.subset$complex_type)
 r <- lda(formula = label ~ model_minus_avg + bs_similarity + bs_aln_similarity + full_seq_id + protein_size + bs_size, data = f.subset)
 lda_predict <- predict(r, f.subset)
 lda_label <- lda_predict$class
-round(table(f.subset$label, lda_label, dnn=c("Structure", "LDA classifier"))/nrow(f.subset)*100, 2)
-
+# round(table(f.subset$label, lda_label, dnn=c("Structure", "LDA classifier"))/nrow(f.subset)*100, 2)
+table(f.subset$label, lda_label, dnn=c("Structure", "LDA classifier"))
 
 r <- lda(formula = label ~ model_minus_avg + bs_similarity + bs_aln_similarity + full_seq_id + protein_size + bs_size, data = f.subset)
 lda_predict <- predict(r, f.subset)
@@ -59,6 +59,13 @@ r <- lda(formula = label ~ model_minus_avg + bs_similarity , data = f.subset)
 lda_predict <- predict(r, f.subset)
 lda_label <- lda_predict$class
 round(table(f.subset$label, lda_label, dnn=c("Structure", "LDA classifier"))/nrow(f.subset)*100, 2)
+
+r <- qda(formula = label ~ model_minus_avg + bs_similarity , data = f.subset)
+lda_predict <- predict(r, f.subset)
+lda_label <- lda_predict$class
+# round(table(f.subset$label, lda_label, dnn=c("Structure", "LDA classifier"))/nrow(f.subset)*100, 2)
+table(f.subset$label, lda_label, dnn=c("Structure", "LDA classifier"))
+
 
 
 #     0     1

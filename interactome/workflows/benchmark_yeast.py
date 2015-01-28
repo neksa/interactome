@@ -19,6 +19,7 @@ if __name__ == '__main__':
     d = "/Users/agoncear/projects/Interactome/Workflow"
     roc_d = d + "/Benchmarks/Yeast2"
     matches_fname = d + "/Alignments/matches_yeast.tab"
+    # matches_fname = d + "/Alignments/matches_Scerevisiae.tab"
     validation_fname = "/Users/agoncear/data/Vidal/Yeast/Y2H_union.txt"
     golden_fname = "/Users/agoncear/data/Vidal/Yeast/Binary-GS.txt"
 
@@ -36,23 +37,25 @@ if __name__ == '__main__':
     # r_identity = scored_labels(pairs["identity"], pairs_vidal)
     # r_bs_identity = scored_labels(pairs["bs_identity"], pairs_vidal)
     # r_positive = scored_labels(pairs["positive"], pairs_vidal)
-    r_bs_positive = scored_labels(pairs["bs_positive"], pairs_vidal)
+    # r_bs_positive = scored_labels(pairs["bs_positive"], pairs_vidal)
     # r_bs_coverage = scored_labels(pairs["bs_coverage"], pairs_vidal)
     # r_score = scored_labels(pairs["model_score"], pairs_vidal)
     # r_zscore = scored_labels(pairs["model_zscore"], pairs_vidal)
-    r_model_minus_avg = scored_labels(pairs["model_minus_avg"], pairs_vidal)
+    # r_model_minus_avg = scored_labels(pairs["model_minus_avg"], pairs_vidal)
     # r_random = scored_labels(pairs["random"], pairs_vidal)
+    r_score = scored_labels(pairs["score"], pairs_vidal)
 
     print "Comparing observed with predicted: Golden"
     # g_identity = scored_labels(pairs["identity"], pairs_golden)
     # g_bs_identity = scored_labels(pairs["bs_identity"], pairs_golden)
     # g_positive = scored_labels(pairs["positive"], pairs_golden)
-    g_bs_positive = scored_labels(pairs["bs_positive"], pairs_golden)
+    # g_bs_positive = scored_labels(pairs["bs_positive"], pairs_golden)
     # g_bs_coverage = scored_labels(pairs["bs_coverage"], pairs_golden)
     # g_score = scored_labels(pairs["model_score"], pairs_golden)
     # g_zscore = scored_labels(pairs["model_zscore"], pairs_golden)
-    g_model_minus_avg = scored_labels(pairs["model_minus_avg"], pairs_golden)
+    # g_model_minus_avg = scored_labels(pairs["model_minus_avg"], pairs_golden)
     # g_random = scored_labels(pairs["random"], pairs_golden)
+    g_score = scored_labels(pairs["score"], pairs_golden)
 
     # print "Comparing observed with predicted: Union"
     # ra_identity = scored_labels(a_pairs["identity"], pairs_vidal)
@@ -89,7 +92,7 @@ if __name__ == '__main__':
     # multiroc((r_bs_identity, g_bs_identity, ra_bs_identity, ga_bs_identity), legend, roc_d + "/bs_identity.png", "Yeast: BS alignment identity")
     # multiroc((r_positive, g_positive, ra_positive, ga_positive), legend, roc_d + "/positive.png", "Yeast: Alignment BLOSUM62 positive")
     # multiroc((r_bs_positive, g_bs_positive, ra_bs_positive, ga_bs_positive), legend, roc_d + "/bs_positive.png", "Yeast: BS alignment BLOSUM62 positive")
-    multiroc((r_bs_positive, g_bs_positive), legend, roc_d + "/bs_positive.png", "Yeast: Binding site similarity score")
+    # multiroc((r_bs_positive, g_bs_positive), legend, roc_d + "/bs_positive.png", "Yeast: Binding site similarity score")
     # # multiroc((r_bs_positive_homo, g_bs_positive_homo), legend, roc_d + "/bs_positive_homo.png", "Yeast: Preserve homo/hetero type. BS BLOSUM62 positive")
     # multiroc((r_bs_coverage, g_bs_coverage, ra_bs_coverage, ga_bs_coverage), legend, roc_d + "/bs_coverage.png", "Yeast: BS coverage")
     # multiroc((r_score, g_score, ra_score, ga_score), legend, roc_d + "/score.png", "Yeast: Compatibility score 1")
@@ -104,7 +107,12 @@ if __name__ == '__main__':
     #     roc_d + "/id_pos.png",
     #     "Basic ROC in Yeast, Y2H_union")
     multiroc(
-        (r_bs_positive, g_bs_positive, r_model_minus_avg, g_model_minus_avg),
-        ('Bind. site similarity (Y2H)', 'Bind. site similarity (Gold set)', 'Interface compatibily (Y2H)', 'Interface compatibility (Gold set)'),
-        roc_d + "/yeast_combined.eps",
-        "Yeast, Y2H and Gold set (Literature)")
+        (r_score, g_score),
+        ('Combined score vs Y2H data', 'Combined score vs Gold set'),
+        roc_d + "/yeast_combined_two.png",
+        "Yeast, Y2H and Gold set (Literature curated)")
+    # multiroc(
+    #     (r_bs_positive, g_bs_positive, r_model_minus_avg, g_model_minus_avg),
+    #     ('Bind. site similarity (Y2H)', 'Bind. site similarity (Gold set)', 'Interface compatibily (Y2H)', 'Interface compatibility (Gold set)'),
+    #     roc_d + "/yeast_combined.eps",
+    #     "Yeast, Y2H and Gold set (Literature)")

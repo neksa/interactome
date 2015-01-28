@@ -16,6 +16,7 @@ def get_scored_pairs(matches_fname, mode="max"):
             #     print i, "==", a, "=="
             # 11 + 2 + 11 + 11 = 35
             try:
+                # queryA, queryB, tpl, query_type, template_type,  #template_nsubunits,\
                 queryA, queryB, tpl, query_type, template_type, \
                     SC1, SC2, SC3, SC4, SC5, SC6, \
                     identicalA, positiveA, aln_lenA, bs_lenA, bs_coveredA, bs_alignedA, bs_identicalA, bs_positiveA, bs_contactsA, bs_BLOSUMA, bs_score1A, \
@@ -50,6 +51,21 @@ def get_scored_pairs(matches_fname, mode="max"):
                     if bs_alignedA <= 10 or bs_alignedB <= 10:
                         continue
 
+                if template_type != query_type:
+                    continue
+
+                # score = score_template_full
+                score = score_model
+                bs_positive = min(
+                    bs_positiveA / bs_lenA,
+                    bs_positiveB / bs_lenB)
+
+                full_identity = min(
+                    identicalA / aln_lenA,
+                    identicalB / aln_lenB)
+
+                score = (1-full_identity) * 0.067 * score + full_identity * 5.07 * bs_positive
+
                 # YMR101C SRT1 SGDID:S000004707, Chr XIII from....
                 queryA = queryA.split()[0]
                 queryB = queryB.split()[0]
@@ -58,22 +74,19 @@ def get_scored_pairs(matches_fname, mode="max"):
                 if queryA > queryB:
                     pair = (queryB, queryA)
 
-                pairs["identity"][pair].append(min(
-                    identicalA / aln_lenA,
-                    identicalB / aln_lenB))
+                pairs["identity"][pair].append(full_identity)
                 pairs["bs_identity"][pair].append(min(
                     bs_identicalA / bs_lenA,
                     bs_identicalB / bs_lenB))
                 pairs["positive"][pair].append(min(
                     positiveA / aln_lenA,
                     positiveB / aln_lenB))
-                pairs["bs_positive"][pair].append(min(
-                    bs_positiveA / bs_lenA,
-                    bs_positiveB / bs_lenB))
+                pairs["bs_positive"][pair].append(bs_positive)
                 pairs["bs_coverage"][pair].append(min(
                     bs_coveredA / bs_lenA,
                     bs_coveredB / bs_lenB))
                 pairs["random"][pair].append(random.random())
+                pairs["score"][pair].append(score) # COMBINED
                 pairs["model_score"][pair].append(score_model)
                 pairs["model_zscore"][pair].append(zscore)
                 pairs["model_minus_avg"][pair].append(model_minus_avg)
@@ -172,7 +185,7 @@ def roc(r, fname, title=None):
 
     # Plot ROC curve
     pl.clf()
-    pl.plot(fpr, tpr, label='AUC = %0.2f' % roc_auc)
+    pl.plot(fpr, tpr, label='AUC = %0.3f' % roc_auc)
     pl.plot([0, 1], [0, 1], 'k--')
     pl.xlim([0.0, 1.0])
     pl.ylim([0.0, 1.0])

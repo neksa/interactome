@@ -246,18 +246,14 @@ def main(in_fname, dd):
     pool = mp.Pool(8, init_worker)
     gen_results = pool.imap_unordered(calc_properties, lines, 100) # 5000
 
-    c = 0
     with open(dd + "/matches_human_analysis.tab", "w") as o, open(dd + "/ntempl.tab", 'w') as o_ntempl, open(dd + "/bslen.tab", 'w') as o_bslen:
         o_ntempl.write("query\tntempl\n")
         o_bslen.write("tpl\t\complex_type\tbs_len\n")
         o.write("side\tquery_A\tquery_B\ttemplate\tcomplex_type\tidentity\tbs_len\tbs_err\tbs_covered\tbs_aligned\tbs_identical\tbs_contacts\tbs_BLOSUM\tbs_score1\n")
 
         try:
-            for result in gen_results:
-
-                c += 1
+            for c, result in enumerate(gen_results):
                 if c % 10000 == 0: print c
-
                 if result is None: continue
                 A, B = result
                 # print A
@@ -267,8 +263,8 @@ def main(in_fname, dd):
                 template_bslens[B[3]] = (B[4], B[6])
 
                 # number of templates per query pair
-                query_A = A[1]            
-                query_B = A[2]            
+                query_A = A[1]
+                query_B = A[2]
                 if query_A < query_B:
                     n_templates[query_A + '+' + query_B] += 1
                 else:

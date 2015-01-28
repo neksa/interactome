@@ -19,7 +19,7 @@ from interactome.sequences.blast import BLAST  # , BLASTReport
 from interactome.structures.complexes import Complexes  # , SiteResidue
 
 from interactome.workflows.merge_alignment import binding_site_alignments, merge_bs_alignments, convert_alignments
-from predict_interactions_bacteria import predict
+from predict_interactions_multiscoring import predict
 
 
 #############################################################
@@ -243,21 +243,26 @@ def calc_complex_alignments(merged_report, templates_fname, outfile, parallel=Tr
 #############################################################
 def calc_predict_complexes(alignment_fname, templates_fname, matches_fname):
     print "Step 4: Predict"
+    fname = get_root() + "/Alignments/" + matches_fname
+    # fname = "0"
     try:
-        with open(matches_fname): pass
+        with open(fname):
+            pass
     except IOError:
         predict(templates_fname, alignment_fname, matches_fname)
     print "Step 4: DONE"
 
 
+# #############################################################
+# def analyze_template_hits(name):
+#     print "Loading hits..."
+
 #############################################################
-blast_hits = None
-
-
 def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
+blast_hits = None
 def func_runner(template):
     global blast_hits
     # print "DEMO runner"
@@ -268,18 +273,28 @@ def func_runner(template):
 
 #############################################################
 def workflow(name):
-    calc_blast(name + ".fa", name + ".xml")
+    calc_blast('Uniprot/' + name + ".fa", name + ".xml")
     calc_blast_report(name + ".xml", name + ".tab")
     calc_binding_site_alignments(name + ".tab", name + "_merged.tab", "pdb_templates_5A.tab")
-    # calc_complex_alignments(name + "_merged.tab", "pdb_templates_5A.tab", "matches_{}.tab".format(name))
-    calc_predict_complexes(name + "_merged.tab", "pdb_templates_5A.tab", "matches_{}.tab".format(name))
+    calc_predict_complexes(name + "_merged.tab", "pdb_templates_5A.tab", "matches2_{}.tab".format(name))
+    #### calc_complex_alignments(name + "_merged.tab", "pdb_templates_5A.tab", "matches_{}.tab".format(name))
 
 
 #############################################################
 if __name__ == '__main__':
+    # workflow("Scerevisiae")
+    # workflow("Ecoli")
+    # workflow("Ypestis")
+    # workflow("Vcholerae")
+    # workflow("Hpylori")
+    # workflow("Spneumoniae")
+
+    # analyze_template_hits("Hsapiens")
+    workflow("Hsapiens")
+
     # workflow("ecoli")
     # cProfile.run('workflow("ecoli")')
     # workflow("yeast")
-    workflow("human")
+    # workflow("human")
     # workflow("HPY_26695_PPI")
     # workflow("SPN_TIGR4_PPI")
