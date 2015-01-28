@@ -28,20 +28,27 @@ def extract_contacts(params):
     # print "Find contacts:", code
     mmcif = mmCifFile(get_pdb_path(), code)
 
-    meta = mmcif.getMetaData()
-    if meta.method.strip() in ('X-RAY DIFFRACTION', 'SOLID-STATE NMR', 'SOLUTION NMR'):
-        iface = Interface(get_results_path(), get_threshold())
-        iteratoms = mmcif.iterAtoms()
-        n = iface.findContacts(code, iteratoms)
+    ## ATTENTION! TEMP disabled
+    # meta = mmcif.getMetaData()
+    # if meta.method.strip() in ('X-RAY DIFFRACTION', 'SOLID-STATE NMR', 'SOLUTION NMR'):
+    #     iface = Interface(get_results_path(), get_threshold())
+    #     iteratoms = mmcif.iterAtoms()
+    #     n = iface.findContacts(code, iteratoms)
 
     # Extract mapping:
-    chain_protein_mapping = mmcif.getChainProteinMapping()
-    with open(get_mapping_fname(code), 'w') as o:
-        o.write("chain\tchain_author\tuniprot\tseq_aln_begin\tseq_aln_end\tdb_aln_begin\tdb_aln_end\tauth_aln_begin\tauth_aln_end\n")
-        for chain, m in chain_protein_mapping.iteritems():
-            o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(chain, m.chain_author, m.uniprot, m.seq_aln_begin, m.seq_aln_end, m.db_aln_begin, m.db_aln_end, m.auth_aln_begin, m.auth_aln_end))
-            print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(chain, m.chain_author, m.uniprot, m.seq_aln_begin, m.seq_aln_end, m.db_aln_begin, m.db_aln_end, m.auth_aln_begin, m.auth_aln_end))
-    print code, "OK"
+    try:
+        chain_protein_mapping = mmcif.getChainProteinMapping()
+        if len(chain_protein_mapping) > 0:
+            print code, [(x[0], len(x[1])) for x in chain_protein_mapping.iteritems()]
+        with open(get_mapping_fname(code), 'w') as o:
+            o.write("chain\tchain_author\tuniprot\tseq_aln_begin\tseq_aln_begin_ins\tseq_aln_end\tseq_aln_end_ins\tdb_aln_begin\tdb_aln_end\tauth_aln_begin\tauth_aln_end\n")
+            for chain, M in chain_protein_mapping.iteritems():
+                for m in M:
+                    o.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(chain, m.chain_author, m.uniprot, m.seq_aln_begin, m.seq_aln_begin_ins, m.seq_aln_end, m.seq_aln_end_ins, m.db_aln_begin, m.db_aln_end, m.auth_aln_begin, m.auth_aln_end))
+                    print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(chain, m.chain_author, m.uniprot, m.seq_aln_begin, m.seq_aln_begin_ins, m.seq_aln_end, m.seq_aln_end_ins, m.db_aln_begin, m.db_aln_end, m.auth_aln_begin, m.auth_aln_end))
+        print code, "OK"
+    except Exception, e:
+        print str(e)
 
 
 def get_mapping_fname(code):

@@ -6,7 +6,7 @@ import os
 import fnmatch
 import copy
 import gzip
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 from pdbx.reader.PdbxReader import PdbxReader
 from pdbx.reader.PdbxContainers import *
@@ -143,9 +143,8 @@ class mmCifFile(Struct):
 
         if self.block is None:
             raise Exception("CIF structure not loaded")
-
-        chain_protein_mapping = {}
-
+        # chain_protein_mapping = defaultdict(set)
+        chain_protein_mapping = defaultdict(list)
         pdb_chain_mapping = self.getPDBChainMapping()
         # print pdb_chain_mapping
 
@@ -159,19 +158,36 @@ class mmCifFile(Struct):
                 continue
             # print "AUTH:", chain_author, chain
             uniprot = ref.getValue("pdbx_db_accession", i)
-            if uniprot == self.code.upper():
+            if uniprot == self.code.upper():  # when does this happen really? need examples
                 uniprot = ''
+
+            # _struct_ref_seq.align_id
+            # _struct_ref_seq.ref_id
+            # _struct_ref_seq.pdbx_PDB_id_code
+            # _struct_ref_seq.pdbx_strand_id
+            # _struct_ref_seq.seq_align_beg
+            # _struct_ref_seq.pdbx_seq_align_beg_ins_code
+            # _struct_ref_seq.seq_align_end
+            # _struct_ref_seq.pdbx_seq_align_end_ins_code
+            # _struct_ref_seq.pdbx_db_accession
+            # _struct_ref_seq.db_align_beg
+            # _struct_ref_seq.db_align_end
+            # _struct_ref_seq.pdbx_auth_seq_align_beg
+            # _struct_ref_seq.pdbx_auth_seq_align_end
+
             seq_aln_begin = int(ref.getValue("seq_align_beg", i))
+            seq_aln_begin_ins = ref.getValue("pdbx_seq_align_beg_ins_code", i)
             seq_aln_end = int(ref.getValue("seq_align_end", i))
+            seq_aln_end_ins = ref.getValue("pdbx_seq_align_end_ins_code", i)
             db_aln_begin = int(ref.getValue("db_align_beg", i))
             db_aln_end = int(ref.getValue("db_align_end", i))
             auth_aln_begin = int(ref.getValue("pdbx_auth_seq_align_beg", i))
             auth_aln_end = int(ref.getValue("pdbx_auth_seq_align_end", i))
-            chain_protein_mapping[chain] = ChainProteinMap(
+            chain_protein_mapping[chain].append(ChainProteinMap(
                 chain_author=chain_author, uniprot=uniprot,
-                seq_aln_begin=seq_aln_begin, seq_aln_end=seq_aln_end,
+                seq_aln_begin=seq_aln_begin, seq_aln_begin_ins=seq_aln_begin_ins, seq_aln_end=seq_aln_end, seq_aln_end_ins=seq_aln_end_ins,
                 db_aln_begin=db_aln_begin, db_aln_end=db_aln_end,
-                auth_aln_begin=auth_aln_begin, auth_aln_end=auth_aln_end)
+                auth_aln_begin=auth_aln_begin, auth_aln_end=auth_aln_end))
         return chain_protein_mapping
 
     def getMetaData(self):

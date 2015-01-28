@@ -5,7 +5,7 @@ from collections import namedtuple
 
 
 Atom = namedtuple('Atom', 'chain, chain_real, chain_author, resn, resn_short, resi, atomn, atomi, element, xyz')
-ChainProteinMap = namedtuple('ChainProteinMap', 'chain_author, uniprot, seq_aln_begin, seq_aln_end, db_aln_begin, db_aln_end, auth_aln_begin, auth_aln_end')
+ChainProteinMap = namedtuple('ChainProteinMap', 'chain_author, uniprot, seq_aln_begin, seq_aln_begin_ins, seq_aln_end, seq_aln_end_ins, db_aln_begin, db_aln_end, auth_aln_begin, auth_aln_end')
 
 
 class Struct:
