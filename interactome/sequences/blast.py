@@ -172,7 +172,7 @@ class BLAST:
                 iteration = elem
 
                 query_id = iteration.find("Iteration_query-def").text
-                if query_id.startswith("sp|"):
+                if query_id.startswith("sp|") or query_id.startswith("tr|"):
                     query_id = query_id.split("|", 2)[1]
                 # query_id = query_id[0:5] # 2HLEA from 2HLEA_ATOM
 
