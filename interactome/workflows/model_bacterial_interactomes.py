@@ -276,7 +276,7 @@ def workflow(name):
     calc_blast('Uniprot/' + name + ".fa", name + ".xml")
     calc_blast_report(name + ".xml", name + ".tab")
     calc_binding_site_alignments(name + ".tab", name + "_merged.tab", "pdb_templates_5A.tab")
-    calc_predict_complexes(name + "_merged.tab", "pdb_templates_5A.tab", "matches2_{}.tab".format(name))
+    calc_predict_complexes(name + "_merged.tab", "pdb_templates_5A.tab", "matches_{}.tab".format(name))
     #### calc_complex_alignments(name + "_merged.tab", "pdb_templates_5A.tab", "matches_{}.tab".format(name))
 
 

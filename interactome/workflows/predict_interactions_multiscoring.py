@@ -462,7 +462,6 @@ def predict(templates_fname, alignment_fname, matches_fname):
         pool = Pool(N_CPU, init_worker)
         per_template_results = pool.imap_unordered(runner_parallel, templates)  # parallel
 
-    def g(x): round(x, 4)
     c = 0
     print "Writing results to", matches_fname
     with open(matches_fname, 'w') as o:
@@ -483,7 +482,7 @@ def predict(templates_fname, alignment_fname, matches_fname):
                     if scores is None:
                         continue
 
-                    score1, score2, score3, score4, score5, score6 = map(g, scores)  # round 4
+                    score1, score2, score3, score4, score5, score6 = map(lambda x: round(x, 4), scores)  # round 4
 
                     props = complex_props.get(tpl.upper(), None)
                     if props is None:
