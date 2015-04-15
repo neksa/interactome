@@ -180,7 +180,6 @@ class Contacts:
 def extract_contacts(params):
     pdb_code, gz_fname, fname_pdb, fname_int = params
     # print pdb_code
-
     try:
         with open(fname_pdb):
             pass
@@ -197,57 +196,57 @@ def extract_contacts(params):
     c.findAll(pdb_code, fname_pdb, fname_int)
 
 
-class Structure:
+# class Structure:
 
-    def __init__(self):
-        root = "/Users/agoncear/projects/Interactome/scoring/"
-        self.results_dir = root+"results/"
-        self.structures_dir = "/Users/agoncear/data/PDB/biounit/"  # root+"PDB/"
+#     def __init__(self):
+#         root = "/Users/agoncear/projects/Interactome/scoring/"
+#         self.results_dir = root+"results/"
+#         self.structures_dir = "/Users/agoncear/data/PDB/biounit/"  # root+"PDB/"
 
-    def dirAll(self, NR=None, only=None):
-        """
-            if results file exists - skip it
-        """
-        for root, dirnames, filenames in os.walk(self.structures_dir):
-            for filename in fnmatch.filter(filenames, '*.pdb1.gz'):
-                pdb_code = ""
-                asm = 0
-                # print filename
-                if filename.endswith("pdb1.gz"):
-                    pdb_code, pdb_asm, _ = os.path.basename(filename).lower().split(".", 2)
-                    asm = int(pdb_asm[3:])
-                else:
-                    continue
+#     def dirAll(self, NR=None, only=None):
+#         """
+#             if results file exists - skip it
+#         """
+#         for root, dirnames, filenames in os.walk(self.structures_dir):
+#             for filename in fnmatch.filter(filenames, '*.pdb1.gz'):
+#                 pdb_code = ""
+#                 asm = 0
+#                 # print filename
+#                 if filename.endswith("pdb1.gz"):
+#                     pdb_code, pdb_asm, _ = os.path.basename(filename).lower().split(".", 2)
+#                     asm = int(pdb_asm[3:])
+#                 else:
+#                     continue
 
-                if only is not None and pdb_code[1:3] != only:
-                    continue
+#                 if only is not None and pdb_code[1:3] != only:
+#                     continue
 
-                if NR is not None and not NR.isNR(pdb_code):
-                    # print "Skip {}".format(pdb_code)
-                    continue
+#                 if NR is not None and not NR.isNR(pdb_code):
+#                     # print "Skip {}".format(pdb_code)
+#                     continue
 
-                gz_fname = root + "/" + filename
-                fname_base = self.results_dir + pdb_code[1:3] + "/" + pdb_code
-                fname_pdb = fname_base + ".pdb"
-                fname_int = fname_base + ".int"
+#                 gz_fname = root + "/" + filename
+#                 fname_base = self.results_dir + pdb_code[1:3] + "/" + pdb_code
+#                 fname_pdb = fname_base + ".pdb"
+#                 fname_int = fname_base + ".int"
 
-                new_dir = self.results_dir + pdb_code[1:3]
-                try:
-                    os.mkdir(new_dir)
-                except:
-                    pass
+#                 new_dir = self.results_dir + pdb_code[1:3]
+#                 try:
+#                     os.mkdir(new_dir)
+#                 except:
+#                     pass
 
-                try:
-                    with open(fname_int):
-                        raise Exception()  # TEMP!!!
-                        # pass
-                except:
-                    yield((pdb_code, gz_fname, fname_pdb, fname_int))
+#                 try:
+#                     with open(fname_int):
+#                         raise Exception()  # TEMP!!!
+#                         # pass
+#                 except:
+#                     yield((pdb_code, gz_fname, fname_pdb, fname_int))
 
-    def runAll(self, only=None):
-        for (pdb_code, gz_fname, fname_pdb, fname_int) in self.dirAll(only):
-            # print pdb_code, gz_fname, fname_pdb, fname_int
-            extract_pdb_gz_contacts(pdb_code, gz_fname, fname_pdb, fname_int)
+#     def runAll(self, only=None):
+#         for (pdb_code, gz_fname, fname_pdb, fname_int) in self.dirAll(only):
+#             # print pdb_code, gz_fname, fname_pdb, fname_int
+#             extract_pdb_gz_contacts(pdb_code, gz_fname, fname_pdb, fname_int)
 
 
 def init_worker():

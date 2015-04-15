@@ -2,6 +2,7 @@ from itertools import islice
 from collections import defaultdict
 from copy import deepcopy
 
+
 def best_pairs(matches_fname, scoring=1):
     pairs = defaultdict(list)
     with open(matches_fname) as f:
