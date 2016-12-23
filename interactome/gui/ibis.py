@@ -54,6 +54,14 @@ def create_app(conf=None):
 
 
 """
+https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/sid/53789435/synonyms/TXT
+https://www.ncbi.nlm.nih.gov/Structure/mmdb/mmdb_strview.cgi?uid=27242&format=json
+http://www.rcsb.org/pdb/rest/describeMol?structureId=3I5F
+"""
+
+
+
+"""
 GETREST_PREFIX +  /structures/protein/<PROTEIN NAME>
 Retrieves a list of PDB IDS and chain IDS given a UNIPROT protein name
 
