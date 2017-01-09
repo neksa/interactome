@@ -9,6 +9,8 @@ import json
 # from random import choice
 from random import randint
 
+from collections import defaultdict
+
 from urllib.request import urlopen, Request
 from urllib.parse import urlencode
 from collections import OrderedDict
@@ -21,7 +23,7 @@ rest_api = Blueprint('rest_api', __name__)
 
 
 def connect_db_ibis():
-    global ibis_db, ObsInt
+    global ibis_db, ObsInt, SidCidInfoHet
 
     CONNECT = "mssql+pymssql://anyone:allowed@DDDSQL608/Intrac"
     engine = create_engine(CONNECT)
@@ -31,7 +33,73 @@ def connect_db_ibis():
     Base.prepare()
 
     ObsInt = Base.classes.ObsInt
+    SidCidInfoHet = Base.classes.SidCidInfoHet
     ibis_db = sessionmaker()(bind=engine)
+
+"""
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP 1000 [obs_int_id]
+      ,[mmdb_id]
+      ,[mol_sdi_id]
+      ,[mol_gi]
+      ,[mol_mol_id]
+      ,[type]
+      ,[image_id]
+      ,[mol_superfam_id]
+      ,[mol_superfam_acc]
+      ,[mol_cd_from]
+      ,[mol_cd_to]
+      ,[mol_cd_pssmid]
+      ,[mol_taxid]
+      ,[int_mol_id]
+      ,[int_gi]
+      ,[int_sid]
+      ,[mol_cd_cur_annot]
+      ,[int_sdi_id]
+      ,[has_int_resface]
+      ,[int_superfam_id]
+      ,[int_superfam_acc]
+      ,[int_cd_from]
+      ,[int_cd_to]
+      ,[int_cd_pssmid]
+      ,[int_taxid]
+      ,[n_resface_contacts]
+      ,[mol_cd_cur_pssm]
+      ,[int_sequence]
+      ,[molface_counts]
+      ,[pisa_status]
+  FROM [Intrac].[dbo].[ObsInt]
+
+
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP 1000 [sid]
+      ,[cid]
+      ,[sidname]
+      ,[cidname]
+      ,[exclude]
+      ,[mesh]
+      ,[pharmaction]
+      ,[active_assays]
+      ,[assays]
+      ,[pdbhet]
+      ,[mmcif]
+  FROM [Intrac].[dbo].[SidCidInfoHet]
+"""
+
+
+def connect_db_mmdb():
+    global mmdb_db, StPdbMap
+
+    CONNECT = "mssql+pymssql://anyone:allowed@DDDSQL608/PubStructMain"
+    engine = create_engine(CONNECT)
+    meta = MetaData(bind=engine)
+    meta.reflect(only=['StPdbMap', 'StStructBioUnit', 'StStruct', 'StSid', 'StSeqAccn', 'StBiounitBiopolymers', 'StAsuBiopolymerChain', 'StBiounitLigands'])
+    Base = automap_base(bind=engine, metadata=meta)
+    Base.prepare()
+
+    StPdbMap = Base.classes.StPdbMap
+    mmdb_db = sessionmaker()(bind=engine)
 
 
 def create_app(conf=None):
@@ -40,7 +108,73 @@ def create_app(conf=None):
         app.config.from_object(conf)
     app.register_blueprint(rest_api)
     connect_db_ibis()
+    connect_db_mmdb()
     return app
+
+
+"""
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP 1000 [pdbId]
+      ,[chnLett]
+      ,[acxn]
+      ,[gi]
+      ,[mmdbId]
+      ,[geneId]
+      ,[molId]
+      ,[pig]
+  FROM [PubStructMain].[dbo].[StSeqAccn]
+
+
+  /****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP 1000 [mmdbId]
+      ,[molId]
+      ,[lignme]
+      ,[sid]
+      ,[liglngnme]
+      ,[ligsyn]
+  FROM [PubStructMain].[dbo].[StSid]
+
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP 1000 [mmdbId]
+      ,[pdbId]
+      ,[pdbcls]
+      ,[expmthd]
+      ,[reso]
+      ,[ecno]
+      ,[rlsdate]
+      ,[depdate]
+  FROM [PubStructMain].[dbo].[StPdbMap]
+
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP 1000 [acc]
+      ,[mmdbId]
+      ,[asuMolId]
+      ,[pdbMolId]
+      ,[chnLett]
+      ,[kind]
+      ,[chnLettPrefix]
+  FROM [PubStructMain].[dbo].[StAsuBiopolymerChain]
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP 1000 [buAcc]
+      ,[molId]
+      ,[asuChainAcc]
+      ,[chainNme]
+  FROM [PubStructMain].[dbo].[StBiounitBiopolymers]
+
+  /****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP 1000 [buAcc]
+      ,[molId]
+      ,[chemMolId]
+      ,[kind]
+  FROM [PubStructMain].[dbo].[StBiounitLigands]
+
+
+"""
+
+
 
 # app = Flask(__name__)
 # api = Api(app)
@@ -99,14 +233,62 @@ Retrieve all known variants given a residue number in a PDB structure.
 """
 
 
+"""
+<molDescription>
+<structureId id="4HHB">
+<polymer entityNr="1" length="141" type="protein" weight="15150.5">
+<chain id="A"/>
+<chain id="C"/>
+<Taxonomy name="Homo sapiens" id="9606"/>
+<macroMolecule name="Hemoglobin subunit alpha">
+<accession id="P69905"/>
+</macroMolecule>
+<polymerDescription description="HEMOGLOBIN (DEOXY) (ALPHA CHAIN)"/>
+</polymer>
+<polymer entityNr="2" length="146" type="protein" weight="15890.4">
+<chain id="B"/>
+<chain id="D"/>
+<Taxonomy name="Homo sapiens" id="9606"/>
+<macroMolecule name="Hemoglobin subunit beta">
+<accession id="P68871"/>
+</macroMolecule>
+<polymerDescription description="HEMOGLOBIN (DEOXY) (BETA CHAIN)"/>
+</polymer>
+</structureId>
+</molDescription>
+"""
+
+
 def get_mmdb_by_pdb(pdb, chain=None):
+    global mmdb_db, StPdbMap
+
     mmdb_id = 0
     chain_id = 0
+
+    m = mmdb_db.query(StPdbMap).filter(StPdbMap.pdbId == pdb).one()
+    mmdb_id = m.mmdbId
+
     return mmdb_id, chain_id
 
 
 def get_pdb_by_mmdb(mmdb_id, chain_id=None):
-    pdb = ""
+    global mmdb_db, StPdbMap
+
+    m = mmdb_db.query(StPdbMap).filter(StPdbMap.mmdbId == mmdb_id).one()
+    pdb = m.pdbId
+
+    # SELECT TOP 1000 [mmdbId]
+    #       ,[pdbId]
+    #       ,[pdbcls]
+    #       ,[expmthd]
+    #       ,[reso]
+    #       ,[ecno]
+    #       ,[rlsdate]
+    #       ,[depdate]
+    #   FROM [PubStructMain].[dbo].[StPdbMap]
+
+    # pdb = ""
+
     chain = ""
     return pdb, chain
 
@@ -128,6 +310,9 @@ def get_observed_bs(int_type, mmdb_id, chain_id=None):
 
 def get_inferred_bs(int_type, mmdb_id, chain_id=None):
     pass
+
+
+import xml.etree.ElementTree as ET
 
 
 @rest_api.route(REST_PREFIX + "/structures/protein/<protein_name>")
@@ -184,11 +369,36 @@ def get_structures_by_protein_name(protein_name):
         raise
         return abort(404)
 
+    pdb_chains = defaultdict(list)
+
+    query_ids = ",".join(list(set([pdb[0].upper() for pdb in pdbs])))
+    URI = "http://www.rcsb.org/pdb/rest/describeMol?structureId=" + query_ids
+    r = Request(URI)
+    try:
+        with urlopen(r) as f:
+            text = f.read().decode('utf-8')
+            root = ET.fromstring(text)
+            structures = root.findall("./structureId")
+            for struct in structures:
+                pdb = struct.attrib['id']
+                polymers = struct.findall('./polymer')
+                for polymer in polymers:
+                    entity = polymer.attrib['entityNr']
+                    chains = polymer.findall('./chain')
+                    for ch in chains:
+                        c = ch.attrib['id']
+                        pdb_chains[(pdb, int(entity))].append(c)
+    except:
+        raise
+
     response = []
     for pdb, entity in pdbs:
-        response.append({
-            'pdb': pdb,
-            'entity': int(entity)})
+        chains = pdb_chains[(pdb, entity)]
+        if len(chains) > 0:
+            for c in chains:
+                response.append({
+                    'pdb': pdb,
+                    'chain': c})
 
     return jsonify({'response': response})
 
@@ -198,7 +408,6 @@ def get_structures_by_compound(compound):
     """
     Pubchem API
     """
-
     url = PUBCHEM_RESOURCE + "compound/cid/{}/xrefs/MMDBID/JSON".format(compound)  # 2244
     try:
         with contextlib.closing(urlopen(url)) as f:
@@ -208,7 +417,13 @@ def get_structures_by_compound(compound):
             for rec in info['InformationList']['Information']:
                 for mmdb in rec['MMDBID']:
                     mmdbs.append(mmdb)
-            return jsonify({'response': mmdbs})
+
+        pdbs = []
+        for m in mmdbs:
+            pdb, chain = get_pdb_by_mmdb(int(m))
+            pdbs.append(pdb)
+
+        return jsonify({'response': pdbs})
     except:
         abort(404)
     return jsonify({'response': ""})
@@ -255,6 +470,51 @@ def get_observed_smi_bs_by_pdb(pdb, chain=None):
     PDB to MMDB
     IBIS query observed SMI
     """
+    global ibis_db, ObsInt, SidCidInfoHet
+
+    mmdb_id, chain = get_mmdb_by_pdb(pdb)
+    q = ibis_db.query(ObsInt).filter(ObsInt.mmdb_id == mmdb_id).all()
+    data = []
+    for a in q:
+        sid = a.int_sid
+        cid = ibis_db.query(SidCidInfoHet).get(sid)
+        print(sid, cid)
+        data.append(a.__dict__)
+
+    import pprint
+    pprint.pprint(data)
+
+    # [obs_int_id]
+    #      ,[mmdb_id]
+    #      ,[mol_sdi_id]
+    #      ,[mol_gi]
+    #      ,[mol_mol_id]
+    #      ,[type]
+    #      ,[image_id]
+    #      ,[mol_superfam_id]
+    #      ,[mol_superfam_acc]
+    #      ,[mol_cd_from]
+    #      ,[mol_cd_to]
+    #      ,[mol_cd_pssmid]
+    #      ,[mol_taxid]
+    #      ,[int_mol_id]
+    #      ,[int_gi]
+    #      ,[int_sid]
+    #      ,[mol_cd_cur_annot]
+    #      ,[int_sdi_id]
+    #      ,[has_int_resface]
+    #      ,[int_superfam_id]
+    #      ,[int_superfam_acc]
+    #      ,[int_cd_from]
+    #      ,[int_cd_to]
+    #      ,[int_cd_pssmid]
+    #      ,[int_taxid]
+    #      ,[n_resface_contacts]
+    #      ,[mol_cd_cur_pssm]
+    #      ,[int_sequence]
+    #      ,[molface_counts]
+    #      ,[pisa_status]
+
     # return ibis(pdb, chain)
     return jsonify({'response': ""})
 

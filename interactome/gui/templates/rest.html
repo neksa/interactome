@@ -76,7 +76,7 @@ Retrieve all known variants given a residue number in a PDB structure.
         $("#api1").data('url', rest_prefix  + "structures/protein/");
         $("#api2").data('url', rest_prefix  + "structures/compound/");
         $("#api3").data('url', rest_prefix  + "binding-sites/observed/protein-protein/pdb/");
-        $("#api4").data('url', rest_prefix  + "binding-sites/observed/protein-protein/pdb/");
+        $("#api4").data('url', rest_prefix  + "binding-sites/observed/protein-compound/pdb/");
         $("#api5").data('url', rest_prefix  + "binding-sites/inferred/protein-protein/pdb/");
         $("#api6").data('url', rest_prefix  + "binding-sites/inferred/protein-compound/pdb/");
         $("#api7").data('url', rest_prefix  + "binding-sites/observed/protein-compound/compound/");
@@ -158,7 +158,7 @@ Retrieve all known variants given a residue number in a PDB structure.
                     <label>2. /structures/compound/COMPOUND_ID</label><br>
                     <div class="input-group">  
                         <div class="input-group-addon">compound id</div>
-                        <input name="input1" type="text" class="form-control" value="" placeholder="2244">
+                        <input name="input1" type="text" class="form-control" value="" placeholder="71304809">
                     </div>
                     <button id="submit_btn" class="btn btn-default">Request</button>
                 </div>
