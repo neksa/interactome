@@ -4,12 +4,13 @@ import random
 
 import pylab as pl
 from sklearn.metrics import roc_curve, auc
+import gzip
 
 
 def get_scored_pairs(matches_fname, mode="max"):
     pairs = defaultdict(lambda: defaultdict(list))
     random.seed(800)
-    with open(matches_fname) as f:
+    with gzip.open(matches_fname) as f:
         for line in islice(f, 1, None):
             # print "L", len(line.strip().split("\t"))
             # for i, a in enumerate(line.strip().split("\t")):

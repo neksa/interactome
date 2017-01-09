@@ -1,0 +1,239 @@
+{% extends 'layouts/main.html' %}
+{% block title %}Interactomes &amp; Interfaces{% endblock %}
+{% block content %}
+
+<script>
+$(function() {
+    // console.log( "document ready" );
+    
+    // $.get("/ppi/{{taxa}}/", function( response ) {
+    //     // console.log( response.pairs ); // server response
+    //     pairs = response.pairs;
+    //     $('#results').text("");
+    //     items = Array()
+    //     for ( var i = 0; i < pairs.length; i++ ) {
+    //         items.push( "<li> <a href='/interface/{{taxa}}/" + pairs[i][0] + "/" + pairs[i][1] +  "/'>" + pairs[i][0] + " - " + pairs[i][1] + "</a></li>" );
+    //     }
+    //     $('#results').append( items.join( "\n" ) );
+    // });
+
+    $("#submit_one_btn").on('click', function(){
+        if ($("#in_p0").val().length == 0) {
+          // console.log('test')
+          return true;
+        }
+
+        search="/go_protein/"+ $("#in_p0").val() + "/";
+        console.log(search);
+        window.location.href = search;
+        return false;
+    });
+
+    $("#submit_two_btn").on('click', function(){
+        if ($("#in_p1").val().length == 0 || $("#in_p2").val().length == 0) return true;
+        // console.log('click two');
+        // search="/interface/{{taxa}}/"+ $("#in1").val() + "/" + $("#in2").val() + "/";
+        search="/go_pair/"+ $("#in_p1").val() + "/" + $("#in_p2").val() + "/";
+        window.location.href = search;
+        return false;
+    });
+    $("#submit_pdb_btn").on('click', function(){
+        if ($("#in_pdb").val().length == 0) {
+          console.log('no pdb');
+          return true;
+        }
+
+        search="/go_pdb/"+ $("#in_pdb").val() + "/";
+        console.log(search);
+        window.location.href = search;
+        return false;
+    });
+});
+</script>
+
+<div class="container">
+<!--   <div class="row">
+    <div class="page-header">
+      <h1>Interactomes <span style="color:#B565A7;" class="glyphicon glyphicon-link"></span> Interfaces</h1>
+    </div>
+  </div>
+ -->
+    <div class="row">
+        <div class="panel panel-default">
+          <div class="panel-heading"><strong>Search interactions</strong>
+          </div>
+        <div class="panel-body">
+
+        {% if error %}
+          <div class="alert alert-warning alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <strong>Error:</strong> {{ error }}
+          </div>
+        {% endif %}
+
+              <div class="col-lg-8">
+                <div class="panel panel-default">
+                  <div class="panel-body">
+                  <form class="form-inline" role="form">
+                      <div class="form-group">
+                          <label>Search interactions by protein</label><br>
+                          <div class="input-group">  
+                              <div class="input-group-addon">Protein</div>
+                              <input id="in_p0" type="text" class="form-control" value="{{ p0|default('P32414', true) }}"> <!-- placeholder="P01111"> -->
+                          </div>
+                          <button id="submit_one_btn" class="btn btn-default" type="submit">
+                          <span class="glyphicon glyphicon-search"  aria-hidden="true"></span> 
+                          Search</button>
+                      </div>
+                  </form>
+
+                  </div>
+                </div>
+
+              </div>
+        <!-- </div> -->
+    <!-- </div> -->
+
+    <!-- <div><hr></div> -->
+    
+    <!-- <div class="row"> -->
+          <div class="col-lg-8">
+                <div class="panel panel-default">
+                <!-- <div class="panel-heading">Explore the interactomes</div> -->
+                <div class="panel-body">
+
+                  <form class="form-inline" role="form">
+                      <div class="form-group">
+                          <label>Identify interactions between two proteins (A and B)</label><br>
+                          <div class="input-group">  
+                              <div class="input-group-addon">A</div>
+                              <input id="in_p1" type="text" class="form-control" value="{{p1 or 'P120200' }}"> <!-- placeholder="P001111"> -->
+                              <div class="input-group-addon">B</div>
+                              <input id="in_p2" type="text" class="form-control" value="{{p2 or 'P203030' }}"><!-- placeholder="P434234"> -->
+                          </div>
+                          <button id="submit_two_btn" class="btn btn-default" type="submit">
+                          <span class="glyphicon glyphicon-search"  aria-hidden="true"></span>
+                          Search</button>
+                      </div>
+                  </form>
+
+                </div>
+                </div>
+          </div>
+
+          <div class="col-lg-8">
+            <div class="panel panel-default">
+              <div class="panel-body">
+              <form class="form-inline" role="form">
+                  <div class="form-group">
+                      <label>Show interactions in a protein complex</label><br>
+                      <div class="input-group">  
+                          <div class="input-group-addon">Protein</div>
+                          <input id="in_pdb" type="text" class="form-control" {{ 'value={}'.format(pdb) if pdb is not none }} placeholder="4pfk">
+                      </div>
+                      <button id="submit_pdb_btn" class="btn btn-default" type="submit">
+                      <span class="glyphicon glyphicon-search"  aria-hidden="true"></span> 
+                      Show</button>
+                  </div>
+              </form>
+
+              </div>
+            </div>
+
+          </div>
+
+    </div>
+    </div>
+
+    </div>
+
+    <div class="row">
+    <div class="panel panel-default">
+      <div class="panel-heading"><strong>Explore interactomes</strong></div>
+      <div class="panel-body">
+
+      <div class="col-xs-2 col-lg-2">
+        <div class="thumbnail">
+          <img src="/static/img/human.jpg">
+          <div class="caption">
+            <h4>H.sapiens</h4>
+            <p></p>
+            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          </div>
+        </div>
+      </div><!--col-->
+
+      <div class="col-xs-2 col-lg-2">
+        <div class="thumbnail">
+          <img src="/static/img/mouse.jpg">
+          <div class="caption">
+            <h4>M.musculus</h4>
+            <p></p>
+            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          </div>
+        </div>
+      </div><!--col-->
+
+      <div class="col-xs-2 col-lg-2">
+        <div class="thumbnail">
+          <img src="/static/img/yeast.jpg">
+          <div class="caption">
+            <h4>S.cerevisiae</h4>
+            <p></p>
+            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          </div>
+        </div>
+      </div><!--col-->
+
+      <div class="col-xs-2 col-lg-2">
+        <div class="thumbnail">
+          <img src="/static/img/ecoli.jpg">
+          <div class="caption">
+            <h4>E.coli</h4>
+            <p>Escherichia coli str. K-12 substr. MG1655</p>
+            <p><a class="btn btn-default" href="/interactome/{{ species['Escherichia coli str. K-12 substr. MG1655'] }}/" role="button">View details &raquo;</a></p>
+          </div>
+        </div>
+      </div><!--col-->
+
+      <div class="col-xs-2 col-lg-2">
+        <div class="thumbnail">
+          <img src="/static/img/spneumoniae.jpg">
+          <div class="caption">
+            <h4>S.pneumoniae</h4>
+            <p></p>
+            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          </div>
+        </div>
+      </div><!--col-->
+
+      <div class="col-xs-2 col-lg-2">
+        <div class="thumbnail">
+          <img src="/static/img/hpylori.jpg">
+          <div class="caption">
+            <h4>H.pylori</h4>
+            <p></p>
+            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          </div>
+        </div>
+      </div><!--col-->
+
+
+      </div>
+    </div>
+
+    </div><!--/row-->
+  <hr>
+
+  <footer>
+    <p>&copy; NCBI, NIH 2014</p>
+  </footer>
+
+</div><!--/.container-->
+
+  </body>
+</html>
+
+
+
+{% endblock %}

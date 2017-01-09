@@ -18,7 +18,7 @@ def load_vidal_interactions(fname):
 if __name__ == '__main__':
     d = "/Users/agoncear/projects/Interactome/Workflow"
     roc_d = d + "/Benchmarks/Yeast2"
-    matches_fname = d + "/Alignments/matches_yeast.tab"
+    matches_fname = d + "/Alignments/matches_yeast.tab.gz"
     # matches_fname = d + "/Alignments/matches_Scerevisiae.tab"
     validation_fname = "/Users/agoncear/data/Vidal/Yeast/Y2H_union.txt"
     golden_fname = "/Users/agoncear/data/Vidal/Yeast/Binary-GS.txt"
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # roc(g_bs_positive, roc_d + "/roc_bs_positive.png", "Yeast, golden set (best model), BS positive (BLOSUM62)")
     # roc(g_bs_coverage, roc_d + "/roc_bs_coverage.png", "Yeast, golden set (best model), BS coverage")
-    # roc(g_score, roc_d + "/roc_score.png", "Yeast, golden set (best model), Score")
+    roc(g_score, roc_d + "/roc_score.png", "Yeast, golden set (best model), Score")
     # roc(g_zscore, roc_d + "/roc_zscore.png", "Yeast, golden set (best model), Z-score")
     # roc(g_model_minus_avg, roc_d + "/roc_model_minus_avg.png", "Yeast, golden set (best model), Score-avg(decoys)")
 

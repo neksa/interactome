@@ -271,7 +271,7 @@ def main(in_fname, dd):
                     n_templates[query_B + '+' + query_A] += 1
 
             for key, val in n_templates.iteritems():
-               o_ntempl.write("{}\t{}\n".format(key, val))
+                o_ntempl.write("{}\t{}\n".format(key, val))
 
             for key, val in template_bslens.iteritems():
                 # for complex_type, bslen in val.iteritems():
@@ -286,7 +286,6 @@ def main(in_fname, dd):
 
     pool.close()
     pool.join()
-
 
 
 if __name__ == '__main__':

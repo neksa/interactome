@@ -1,0 +1,612 @@
+1a2,3
+> from flask import render_template
+> # from flask import request, redirect
+3d4
+< from flask import request, render_template, redirect
+7,10d7
+< # import urllib
+< 
+< # from random import choice
+< from random import randint
+12c9,10
+< from collections import defaultdict
+---
+> # import urllib
+> # from random import randint, choice
+23a22,24
+> # db_ibis = None
+> # class ObsInt(object):
+> #     pass
+25,71c26,28
+< def connect_db_ibis():
+<     global ibis_db, ObsInt, SidCidInfoHet
+< 
+<     CONNECT = "mssql+pymssql://anyone:allowed@DDDSQL608/Intrac"
+<     engine = create_engine(CONNECT)
+<     meta = MetaData(bind=engine)
+<     meta.reflect(only=['ObsInt', 'PdbXtal', 'MolResFace', 'ExcludedSid', 'IntResFace', 'SidCidInfo', 'StructDomSfam', 'SidCidInfoHet', 'TblMap'])
+<     Base = automap_base(bind=engine, metadata=meta)
+<     Base.prepare()
+< 
+<     ObsInt = Base.classes.ObsInt
+<     SidCidInfoHet = Base.classes.SidCidInfoHet
+<     ibis_db = sessionmaker()(bind=engine)
+< 
+< """
+< /****** Script for SelectTopNRows command from SSMS  ******/
+< SELECT TOP 1000 [obs_int_id]
+<       ,[mmdb_id]
+<       ,[mol_sdi_id]
+<       ,[mol_gi]
+<       ,[mol_mol_id]
+<       ,[type]
+<       ,[image_id]
+<       ,[mol_superfam_id]
+<       ,[mol_superfam_acc]
+<       ,[mol_cd_from]
+<       ,[mol_cd_to]
+<       ,[mol_cd_pssmid]
+<       ,[mol_taxid]
+<       ,[int_mol_id]
+<       ,[int_gi]
+<       ,[int_sid]
+<       ,[mol_cd_cur_annot]
+<       ,[int_sdi_id]
+<       ,[has_int_resface]
+<       ,[int_superfam_id]
+<       ,[int_superfam_acc]
+<       ,[int_cd_from]
+<       ,[int_cd_to]
+<       ,[int_cd_pssmid]
+<       ,[int_taxid]
+<       ,[n_resface_contacts]
+<       ,[mol_cd_cur_pssm]
+<       ,[int_sequence]
+<       ,[molface_counts]
+<       ,[pisa_status]
+<   FROM [Intrac].[dbo].[ObsInt]
+---
+> INT_PPI = 3
+> INT_SMI = 6
+> INT_PEPT = 7
+72a30
+> REST_PREFIX = "/rest/v1/"
+73a32,34
+> UNIPROT_RESOURCE = "http://www.ebi.ac.uk/proteins/api"
+> PDB_RESOURCE = "http://www.rcsb.org/pdb/rest"
+> PUBCHEM_RESOURCE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
+75,88c36
+< /****** Script for SelectTopNRows command from SSMS  ******/
+< SELECT TOP 1000 [sid]
+<       ,[cid]
+<       ,[sidname]
+<       ,[cidname]
+<       ,[exclude]
+<       ,[mesh]
+<       ,[pharmaction]
+<       ,[active_assays]
+<       ,[assays]
+<       ,[pdbhet]
+<       ,[mmcif]
+<   FROM [Intrac].[dbo].[SidCidInfoHet]
+< """
+---
+> MMDB_RESOURCE = "https://www.ncbi.nlm.nih.gov/Structure/mmdb/mmdb_strview.cgi?uid=27242&format=json"  # &intrac=3
+91,92c39,40
+< def connect_db_mmdb():
+<     global mmdb_db, StPdbMap
+---
+> def connect_db_ibis():
+>     global db_ibis, ObsInt
+94c42,43
+<     CONNECT = "mssql+pymssql://anyone:allowed@DDDSQL608/PubStructMain"
+---
+>     # CONNECT = "mssql+pymssql://anyone:allowed@DDDSQL608/Intrac"
+>     CONNECT = "mssql+pymssql://anyone:allowed@localhost/Intrac"
+97c46
+<     meta.reflect(only=['StPdbMap', 'StStructBioUnit', 'StStruct', 'StSid', 'StSeqAccn', 'StBiounitBiopolymers', 'StAsuBiopolymerChain', 'StBiounitLigands'])
+---
+>     meta.reflect(only=['ObsInt', 'PdbXtal', 'MolResFace', 'ExcludedSid', 'IntResFace', 'SidCidInfo', 'StructDomSfam', 'SidCidInfoHet', 'TblMap'])
+101,102c50,51
+<     StPdbMap = Base.classes.StPdbMap
+<     mmdb_db = sessionmaker()(bind=engine)
+---
+>     ObsInt = Base.classes.ObsInt
+>     db_ibis = sessionmaker()(bind=engine)
+111d59
+<     connect_db_mmdb()
+114,178d61
+< 
+< """
+< /****** Script for SelectTopNRows command from SSMS  ******/
+< SELECT TOP 1000 [pdbId]
+<       ,[chnLett]
+<       ,[acxn]
+<       ,[gi]
+<       ,[mmdbId]
+<       ,[geneId]
+<       ,[molId]
+<       ,[pig]
+<   FROM [PubStructMain].[dbo].[StSeqAccn]
+< 
+< 
+<   /****** Script for SelectTopNRows command from SSMS  ******/
+< SELECT TOP 1000 [mmdbId]
+<       ,[molId]
+<       ,[lignme]
+<       ,[sid]
+<       ,[liglngnme]
+<       ,[ligsyn]
+<   FROM [PubStructMain].[dbo].[StSid]
+< 
+< 
+< /****** Script for SelectTopNRows command from SSMS  ******/
+< SELECT TOP 1000 [mmdbId]
+<       ,[pdbId]
+<       ,[pdbcls]
+<       ,[expmthd]
+<       ,[reso]
+<       ,[ecno]
+<       ,[rlsdate]
+<       ,[depdate]
+<   FROM [PubStructMain].[dbo].[StPdbMap]
+< 
+< 
+< /****** Script for SelectTopNRows command from SSMS  ******/
+< SELECT TOP 1000 [acc]
+<       ,[mmdbId]
+<       ,[asuMolId]
+<       ,[pdbMolId]
+<       ,[chnLett]
+<       ,[kind]
+<       ,[chnLettPrefix]
+<   FROM [PubStructMain].[dbo].[StAsuBiopolymerChain]
+< 
+< /****** Script for SelectTopNRows command from SSMS  ******/
+< SELECT TOP 1000 [buAcc]
+<       ,[molId]
+<       ,[asuChainAcc]
+<       ,[chainNme]
+<   FROM [PubStructMain].[dbo].[StBiounitBiopolymers]
+< 
+<   /****** Script for SelectTopNRows command from SSMS  ******/
+< SELECT TOP 1000 [buAcc]
+<       ,[molId]
+<       ,[chemMolId]
+<       ,[kind]
+<   FROM [PubStructMain].[dbo].[StBiounitLigands]
+< 
+< 
+< """
+< 
+< 
+< 
+193a77,108
+> 
+> 
+> curl 'http://www.cancerrxgene.org/translation/drug_list?list=all&export=json&sEcho=1&iColumns=6&sColumns=&iDisplayStart=0&iDisplayLength=30&mDataProp_0=0&mDataProp_1=1&mDataProp_2=2&mDataProp_3=3&mDataProp_4=4&mDataProp_5=5&sSearch=&bRegex=false&sSearch_0=&bRegex_0=false&bSearchable_0=true&sSearch_1=&bRegex_1=false&bSearchable_1=true&sSearch_2=&bRegex_2=false&bSearchable_2=true&sSearch_3=&bRegex_3=false&bSearchable_3=true&sSearch_4=&bRegex_4=false&bSearchable_4=true&sSearch_5=&bRegex_5=false&bSearchable_5=true&iSortCol_0=0&sSortDir_0=asc&iSortingCols=1&bSortable_0=true&bSortable_1=true&bSortable_2=true&bSortable_3=true&bSortable_4=true&bSortable_5=true' \
+> -XGET \
+> -H 'Accept: application/json, text/javascript, */*; q=0.01' \
+> -H 'Referer: http://www.cancerrxgene.org/translation/Drug' \
+> -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14' \
+> -H 'X-Requested-With: XMLHttpRequest'
+> 
+> 
+> {
+>     "iTotalRecords": "265",
+>     "iTotalDisplayRecords": "265",
+>     "aaData": [
+>         [
+>             "<a href=\"http://www.cancerrxgene.org/translation/Drug/1242\">(5Z)-7-Oxozeaenol</a>",
+>             null,
+>             "TAK1 (MAP3K7)",
+>             "other",
+>             null,
+>             "951"
+>         ],
+> 
+> 
+> 
+> 
+> curl 'http://www.cancerrxgene.org/translation/drug_list?list=all&export=json&sEcho=6&iColumns=6&sColumns=&iDisplayStart=0&iDisplayLength=30&mDataProp_0=0&mDataProp_1=1&mDataProp_2=2&mDataProp_3=3&mDataProp_4=4&mDataProp_5=5&sSearch=11433190&bRegex=false&sSearch_0=&bRegex_0=false&bSearchable_0=true&sSearch_1=&bRegex_1=false&bSearchable_1=true&sSearch_2=&bRegex_2=false&bSearchable_2=true&sSearch_3=&bRegex_3=false&bSearchable_3=true&sSearch_4=&bRegex_4=false&bSearchable_4=true&sSearch_5=&bRegex_5=false&bSearchable_5=true&iSortCol_0=0&sSortDir_0=asc&iSortingCols=1&bSortable_0=true&bSortable_1=true&bSortable_2=true&bSortable_3=true&bSortable_4=true&bSortable_5=true' \
+> -XGET \
+> -H 'Accept: application/json, text/javascript, */*; q=0.01' \
+> -H 'Referer: http://www.cancerrxgene.org/translation/Drug' \
+> -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14' \
+> -H 'X-Requested-With: XMLHttpRequest'
+236,261d150
+< """
+< <molDescription>
+< <structureId id="4HHB">
+< <polymer entityNr="1" length="141" type="protein" weight="15150.5">
+< <chain id="A"/>
+< <chain id="C"/>
+< <Taxonomy name="Homo sapiens" id="9606"/>
+< <macroMolecule name="Hemoglobin subunit alpha">
+< <accession id="P69905"/>
+< </macroMolecule>
+< <polymerDescription description="HEMOGLOBIN (DEOXY) (ALPHA CHAIN)"/>
+< </polymer>
+< <polymer entityNr="2" length="146" type="protein" weight="15890.4">
+< <chain id="B"/>
+< <chain id="D"/>
+< <Taxonomy name="Homo sapiens" id="9606"/>
+< <macroMolecule name="Hemoglobin subunit beta">
+< <accession id="P68871"/>
+< </macroMolecule>
+< <polymerDescription description="HEMOGLOBIN (DEOXY) (BETA CHAIN)"/>
+< </polymer>
+< </structureId>
+< </molDescription>
+< """
+< 
+< 
+263,264d151
+<     global mmdb_db, StPdbMap
+< 
+267,270d153
+< 
+<     m = mmdb_db.query(StPdbMap).filter(StPdbMap.pdbId == pdb).one()
+<     mmdb_id = m.mmdbId
+< 
+275,291c158
+<     global mmdb_db, StPdbMap
+< 
+<     m = mmdb_db.query(StPdbMap).filter(StPdbMap.mmdbId == mmdb_id).one()
+<     pdb = m.pdbId
+< 
+<     # SELECT TOP 1000 [mmdbId]
+<     #       ,[pdbId]
+<     #       ,[pdbcls]
+<     #       ,[expmthd]
+<     #       ,[reso]
+<     #       ,[ecno]
+<     #       ,[rlsdate]
+<     #       ,[depdate]
+<     #   FROM [PubStructMain].[dbo].[StPdbMap]
+< 
+<     # pdb = ""
+< 
+---
+>     pdb = ""
+296,297c163,164
+< INT_PPI = 3
+< INT_SMI = 6
+---
+> # def get_observed_bs(int_type, mmdb_id, chain_id=None):
+> #     pass
+299,312d165
+< UNIPROT_RESOURCE = "http://www.ebi.ac.uk/proteins/api"
+< PDB_RESOURCE = "http://www.rcsb.org/pdb/rest"
+< PUBCHEM_RESOURCE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
+< REST_PREFIX = "/rest/pipeline"
+< 
+< MMDB_RESOURCE = "https://www.ncbi.nlm.nih.gov/Structure/mmdb/mmdb_strview.cgi?uid=27242&format=json"  # &intrac=3
+< 
+< 
+< def get_observed_bs(int_type, mmdb_id, chain_id=None):
+<     pass
+< 
+< 
+< def get_inferred_bs(int_type, mmdb_id, chain_id=None):
+<     pass
+313a167,168
+> # def get_inferred_bs(int_type, mmdb_id, chain_id=None):
+> #     pass
+315d169
+< import xml.etree.ElementTree as ET
+317,318c171
+< 
+< @rest_api.route(REST_PREFIX + "/structures/protein/<protein_name>")
+---
+> @rest_api.route(REST_PREFIX + "structures/protein/<protein_name>")
+372,393d224
+<     pdb_chains = defaultdict(list)
+< 
+<     query_ids = ",".join(list(set([pdb[0].upper() for pdb in pdbs])))
+<     URI = "http://www.rcsb.org/pdb/rest/describeMol?structureId=" + query_ids
+<     r = Request(URI)
+<     try:
+<         with urlopen(r) as f:
+<             text = f.read().decode('utf-8')
+<             root = ET.fromstring(text)
+<             structures = root.findall("./structureId")
+<             for struct in structures:
+<                 pdb = struct.attrib['id']
+<                 polymers = struct.findall('./polymer')
+<                 for polymer in polymers:
+<                     entity = polymer.attrib['entityNr']
+<                     chains = polymer.findall('./chain')
+<                     for ch in chains:
+<                         c = ch.attrib['id']
+<                         pdb_chains[(pdb, int(entity))].append(c)
+<     except:
+<         raise
+< 
+396,401c227,229
+<         chains = pdb_chains[(pdb, entity)]
+<         if len(chains) > 0:
+<             for c in chains:
+<                 response.append({
+<                     'pdb': pdb,
+<                     'chain': c})
+---
+>         response.append({
+>             'pdb': pdb,
+>             'entity': int(entity)})
+406c234
+< @rest_api.route(REST_PREFIX + "/structures/compound/<compound>")
+---
+> @rest_api.route(REST_PREFIX + "structures/compound/<compound>")
+410a239
+> 
+420,426c249
+< 
+<         pdbs = []
+<         for m in mmdbs:
+<             pdb, chain = get_pdb_by_mmdb(int(m))
+<             pdbs.append(pdb)
+< 
+<         return jsonify({'response': pdbs})
+---
+>             return jsonify({'response': mmdbs})
+432c255
+< @rest_api.route(REST_PREFIX + "/compounds/similar/compound/<compound>")
+---
+> @rest_api.route(REST_PREFIX + "compounds/similar/compound/<compound>")
+437a261,263
+>     # Similar 3D
+>     cids_3d = []
+> 
+439d264
+<     url = PUBCHEM_RESOURCE + "compound/fastsimilarity_2d/cid/{}/cids/JSON".format(compound)  # 2244
+440a266,281
+>     # try:
+>     #     with contextlib.closing(urlopen(url)) as f:
+>     #         result = f.read().decode('utf-8')
+>     #         info = json.loads(result)
+>     #         for cid in info['IdentifierList']["CID"]:
+>     #             cids_3d.append(cid)
+>     # except:
+>     #     raise
+>     #     abort(500)
+> 
+>     # print(cids_3d)
+> 
+>     # Similar 2D
+>     url = PUBCHEM_RESOURCE + "compound/fastsimilarity_2d/cid/{}/cids/JSON".format(compound)  # 2244
+>     print(url)
+>     cids_2d = []
+445d285
+<             cids = []
+447,448c287
+<                 cids.append(cid)
+<             return jsonify({'response': cids})
+---
+>                 cids_2d.append(cid)
+450,452c289,290
+<         # raise
+<         abort(404)
+<     return jsonify({'response': ""})
+---
+>         raise
+>         abort(500)
+453a292
+>     print(cids_2d)
+455,463c294,299
+< @rest_api.route(REST_PREFIX + "/binding-sites/observed/protein-protein/pdb/<pdb>")
+< @rest_api.route(REST_PREFIX + "/binding-sites/observed/protein-protein/pdb/<pdb>/<chain>")
+< def get_observed_ppi_bs_by_pdb(pdb, chain=None):
+<     """
+<     PDB to MMDB
+<     IBIS query observed PPI
+<     """
+<     return ibis(pdb, chain)
+<     # return jsonify({'response': ""})
+---
+>     # cids = list(set(cids_3d) & set(cids_2d))
+>     cids = list(set(cids_3d) | set(cids_2d))
+>     if len(cids) > 0:
+>         return jsonify({'response': cids})
+>     else:
+>         return jsonify({'error': "Not found"})
+466,468c302,304
+< @rest_api.route(REST_PREFIX + "/binding-sites/observed/protein-compound/pdb/<pdb>")
+< @rest_api.route(REST_PREFIX + "/binding-sites/observed/protein-compound/pdb/<pdb>/<chain>")
+< def get_observed_smi_bs_by_pdb(pdb, chain=None):
+---
+> @rest_api.route(REST_PREFIX + "binding-sites/<obs_inf>/<int_type>/pdb/<pdb>")
+> @rest_api.route(REST_PREFIX + "binding-sites/<obs_inf>/<int_type>/pdb/<pdb>/<chain>")
+> def get_bs_by_pdb(obs_inf, int_type, pdb, chain=None):
+471c307
+<     IBIS query observed SMI
+---
+>     IBIS query observed PPI
+473,516c309,310
+<     global ibis_db, ObsInt, SidCidInfoHet
+< 
+<     mmdb_id, chain = get_mmdb_by_pdb(pdb)
+<     q = ibis_db.query(ObsInt).filter(ObsInt.mmdb_id == mmdb_id).all()
+<     data = []
+<     for a in q:
+<         sid = a.int_sid
+<         cid = ibis_db.query(SidCidInfoHet).get(sid)
+<         print(sid, cid)
+<         data.append(a.__dict__)
+< 
+<     import pprint
+<     pprint.pprint(data)
+< 
+<     # [obs_int_id]
+<     #      ,[mmdb_id]
+<     #      ,[mol_sdi_id]
+<     #      ,[mol_gi]
+<     #      ,[mol_mol_id]
+<     #      ,[type]
+<     #      ,[image_id]
+<     #      ,[mol_superfam_id]
+<     #      ,[mol_superfam_acc]
+<     #      ,[mol_cd_from]
+<     #      ,[mol_cd_to]
+<     #      ,[mol_cd_pssmid]
+<     #      ,[mol_taxid]
+<     #      ,[int_mol_id]
+<     #      ,[int_gi]
+<     #      ,[int_sid]
+<     #      ,[mol_cd_cur_annot]
+<     #      ,[int_sdi_id]
+<     #      ,[has_int_resface]
+<     #      ,[int_superfam_id]
+<     #      ,[int_superfam_acc]
+<     #      ,[int_cd_from]
+<     #      ,[int_cd_to]
+<     #      ,[int_cd_pssmid]
+<     #      ,[int_taxid]
+<     #      ,[n_resface_contacts]
+<     #      ,[mol_cd_cur_pssm]
+<     #      ,[int_sequence]
+<     #      ,[molface_counts]
+<     #      ,[pisa_status]
+---
+>     print(obs_inf)
+>     print(int_type)
+518,519c312,314
+<     # return ibis(pdb, chain)
+<     return jsonify({'response': ""})
+---
+>     if obs_inf not in ("observed", "inferred"):
+>         print("11")
+>         abort(404)
+520a316,318
+>     if int_type not in ("protein-protein", "protein-compound", "protein-peptide"):
+>         print("22222")
+>         abort(404)
+522,530c320
+< @rest_api.route(REST_PREFIX + "/binding-sites/inferred/protein-protein/pdb/<pdb>")
+< @rest_api.route(REST_PREFIX + "/binding-sites/inferred/protein-protein/pdb/<pdb>/<chain>")
+< def get_inferred_ppi_bs_by_pdb(pdb, chain=None):
+<     """
+<     PDB to MMDB
+<     IBIS query observed PPI
+<     """
+<     return ibis(pdb, chain)
+<     return jsonify({'response': ""})
+---
+>     inferred = obs_inf == "inferred"
+531a322,324
+>     interaction = INT_PPI if int_type == "protein-protein" else False
+>     interaction = INT_SMI if int_type == "protein-compound" else False
+>     interaction = INT_PEPT if int_type == "protein-peptide" else False
+533,541c326,327
+< @rest_api.route(REST_PREFIX + "/binding-sites/inferred/protein-compound/pdb/<pdb>")
+< @rest_api.route(REST_PREFIX + "/binding-sites/inferred/protein-compound/pdb/<pdb>/<chain>")
+< def get_inferred_smi_bs_by_pdb(pdb, chain=None):
+<     """
+<     PDB to MMDB
+<     IBIS query observed SMI
+<     """
+<     # return ibis(pdb, chain)
+<     return jsonify({'response': ""})
+---
+>     return ibis(inferred, interaction, pdb, chain)
+>     # return jsonify({'response': ""})
+544,549c330,368
+< @rest_api.route(REST_PREFIX + "/binding-sites/observed/protein-compound/compound/<compound>")
+< def get_observed_bs_by_compound(compound):
+<     """
+<     IBIS query observed SMI by compound
+<     """
+<     return jsonify({'response': ""})
+---
+> # @rest_api.route(REST_PREFIX + "binding-sites/observed/protein-compound/pdb/<pdb>")
+> # @rest_api.route(REST_PREFIX + "binding-sites/observed/protein-compound/pdb/<pdb>/<chain>")
+> # def get_observed_smi_bs_by_pdb(pdb, chain=None):
+> #     """
+> #     PDB to MMDB
+> #     IBIS query observed SMI
+> #     """
+> #     # return ibis(pdb, chain)
+> #     return jsonify({'response': ""})
+> 
+> 
+> # @rest_api.route(REST_PREFIX + "binding-sites/inferred/protein-protein/pdb/<pdb>")
+> # @rest_api.route(REST_PREFIX + "binding-sites/inferred/protein-protein/pdb/<pdb>/<chain>")
+> # def get_inferred_ppi_bs_by_pdb(pdb, chain=None):
+> #     """
+> #     PDB to MMDB
+> #     IBIS query observed PPI
+> #     """
+> #     return ibis(pdb, chain)
+> #     return jsonify({'response': ""})
+> 
+> 
+> # @rest_api.route(REST_PREFIX + "binding-sites/inferred/protein-compound/pdb/<pdb>")
+> # @rest_api.route(REST_PREFIX + "binding-sites/inferred/protein-compound/pdb/<pdb>/<chain>")
+> # def get_inferred_smi_bs_by_pdb(pdb, chain=None):
+> #     """
+> #     PDB to MMDB
+> #     IBIS query observed SMI
+> #     """
+> #     # return ibis(pdb, chain)
+> #     return jsonify({'response': ""})
+> 
+> 
+> # @rest_api.route(REST_PREFIX + "binding-sites/observed/protein-compound/compound/<compound>")
+> # def get_observed_bs_by_compound(compound):
+> #     """
+> #     IBIS query observed SMI by compound
+> #     """
+> #     return jsonify({'response': ""})
+552c371
+< @rest_api.route(REST_PREFIX + "/compounds/interacting/protein/<protein_name>")
+---
+> @rest_api.route(REST_PREFIX + "compounds/interacting/protein/<protein_name>")
+562c381
+< @rest_api.route(REST_PREFIX + "/variants/pdb/<pdb>/<chain>/<residue>")
+---
+> @rest_api.route(REST_PREFIX + "variants/pdb/<pdb>/<chain>/<residue>")
+572c391,395
+<     return render_template('rest.html')
+---
+>     # recs = db_ibis.query(ObsInt).filter(ObsInt.mmdb_id == 107035)
+>     # for r in recs:
+>     #     print(r.obs_int_id, r.mol_superfam_acc)
+> 
+>     return render_template('rest.html', prefix=REST_PREFIX)
+577c400,401
+< def ibis(pdb, chain):
+---
+> def ibis(inferred, interaction, pdb, chain):
+>     chain = chain if chain else ""
+585a410
+>     # Retrieve query SDI:
+588c413
+<         url = "http://www.ncbi.nlm.nih.gov/Structure/ibis/ibis.cgi?%s" % urlparams
+---
+>         url = "https://www.ncbi.nlm.nih.gov/Structure/ibis/ibis.cgi?%s" % urlparams
+590a416
+>             # return html
+597a424
+>             print("No SDI")
+600c427
+<         # raise
+---
+>         raise
+605c432
+<         url = "http://www.ncbi.nlm.nih.gov/Structure/ibis/ibis.cgi?%s" % urlparams
+---
+>         url = "https://www.ncbi.nlm.nih.gov/Structure/ibis/ibis.cgi?%s" % urlparams
+639a467
+>             print("EMPTY INTERAC")
+642c470
+<         # raise
+---
+>         raise
+646c474
+<         url = "http://www.ncbi.nlm.nih.gov/Structure/ibis/ibis.cgi?%s" % urlparams
+---
+>         url = "https://www.ncbi.nlm.nih.gov/Structure/ibis/ibis.cgi?%s" % urlparams
+700c528
+<         # raise
+---
+>         raise

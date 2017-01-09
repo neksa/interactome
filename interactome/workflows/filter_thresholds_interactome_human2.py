@@ -161,13 +161,17 @@ def iter_uniprot():
                 rec[i] += data
 
 
-def iter_uniprot_mapping():
+def iter_uniprot_mapping(human_only=False):
     import gzip
-    fname = "/Users/agoncear/data/Uniprot/Uniprot_Release_2014_11/idmapping.kb.dat.gz"
+    # ATTENTION: Only taking the human mapping
+    ROOT = "/Users/agoncear/data/Uniprot/Uniprot_Release_2014_11/"
+    fname = ROOT + "idmapping.kb.dat.gz"
+    if human_only:
+        fname = ROOT + "idmapping.kb.human.dat.gz"
     with gzip.open(fname) as f:
         for c, l in enumerate(f):
-            if c % 1000000 == 0:
-                print c
+            if c % 100000 == 0:
+                print "Progress: ", c
             uid, utype, uacc = l.strip().split("\t", 2)
             if utype == 'UniProtKB-ID':
                 yield uid, uacc
@@ -284,7 +288,7 @@ def get_vidal_clones(fname):
     return clones, clones_by_id
 
 
-def savefile(infile, outfile, accessions=None, vidal=None, emili=None, clones=None):
+def savefile(infile, outfile, accessions=None, vidal=None, emili=None, clones=None, genes=None):
     """
     # Clones mapped from ORFEOME 1.1 and MGC
     Clones from ORFEOME 8.1 mapped to Uniprot proteome 
@@ -304,7 +308,7 @@ def savefile(infile, outfile, accessions=None, vidal=None, emili=None, clones=No
                 emili_accessions.append((a_ac, b_ac))
 
     with open(outfile, 'w') as o:
-        fields = "UniprotAC A\tUniprotID A\tClone A\tgeneA\tUniprotAC B\tUniprotID B\tClone B\tgeneB\tVidal\tEmili\tIn PDB\tScore\tBinding site seq. similarity\tInterface compatibility score\tBinding site coverage\tTemplate\tTemplate complex subunits\tTemplate UniprotID A\tTemplate Uniprot AC A\tTemplate UniprotID B\tTemplate UniprotAC B\tLA\tLB\tNCA\tNCB\tsiteA\tsiteB"
+        fields = "UniprotAC A\tUniprotID A\tClone A\tWell A\tGene A\tUniprotAC B\tUniprotID B\tClone B\tWell B\tGene B\tHomo_Hetero\tVidal\tEmili\tIn PDB\tScore\tBinding site seq. similarity\tInterface compatibility score\tBinding site coverage\tTemplate\tTemplate complex subunits\tTemplate UniprotID A\tTemplate Uniprot AC A\tTemplate UniprotID B\tTemplate UniprotAC B\tLA\tLB\tNCA\tNCB\tsiteA\tsiteB"
         o.write(fields+"\n")
         for pair, v in pairs.iteritems():
             A, B = pair
@@ -317,6 +321,10 @@ def savefile(infile, outfile, accessions=None, vidal=None, emili=None, clones=No
             print A, B
             if uniprotAC_A not in clones or uniprotAC_B not in clones:
                 continue
+
+            homo_hetero = "HETERO"
+            if uniprotAC_A == uniprotAC_B:
+                homo_hetero = "HOMO"
 
             template = v["tpl"].replace("|", ".")
             pdb, chainA, chainB = v["tpl"].split("|")
@@ -337,8 +345,15 @@ def savefile(infile, outfile, accessions=None, vidal=None, emili=None, clones=No
             # len_prot_B = cB.length
             # genesA = cA.names
             # genesB = cB.names
-            bcA, geneA, len_prot_A = clones[uniprotAC_A]
-            bcB, geneB, len_prot_B = clones[uniprotAC_B]
+            # orf, well, int(gene), int(length)
+            orfA, wellA, geneidA, len_prot_A = clones[uniprotAC_A]
+            orfB, wellB, geneidB, len_prot_B = clones[uniprotAC_B]
+            geneA = genes.get(geneidA, "-")
+            geneB = genes.get(geneidB, "-")
+
+            # FILTER: Protein size is not a peptide
+            if len_prot_A < 25 or len_prot_B < 25:
+                continue
 
             ss = []
             resiA = []
@@ -406,8 +421,9 @@ def savefile(infile, outfile, accessions=None, vidal=None, emili=None, clones=No
             strfmt = ["{}"] * len(fields.split("\t"))
             strfmt = "\t".join(strfmt) + "\n"
             o.write(strfmt.format(
-                uniprotA, uniprotAC_A, bcA, geneA,
-                uniprotB, uniprotAC_B, bcB, geneB,
+                uniprotA, uniprotAC_A, orfA, wellA, geneA,
+                uniprotB, uniprotAC_B, orfB, wellB, geneB,
+                homo_hetero,
                 exp_vidal, exp_emili, inPDB,
                 score, similarity, compatibility, bs_aligned,
                 template, template_nsubunits,
@@ -416,34 +432,31 @@ def savefile(infile, outfile, accessions=None, vidal=None, emili=None, clones=No
                 len_prot_A, len_prot_B, NCA, NCB, sA, sB))
 
 
-def get_mgc_clones(clones, genes):
-    all_clones = {}
-    with open(clones) as f1, open(genes) as f2:
-        bc_gene = {}
-        for line2 in islice(f2, 1, None):
-            try:
-                gene, desc, locus, unigene, image, bc, _, _, _ = line2.strip().split("\t")
-                if gene == "":
-                    continue
-                if gene not in bc_gene:
-                    bc_gene[bc] = gene
-            except:
-                # print line2.strip().split("\t")
-                # raise
-                pass
+def get_genes(genes_fname):
+    genes = {}
+    with gzip.open(genes_fname) as f:
+        for line in islice(f, 1, None):
+            fields = line.strip().split("\t")
+            gene_id = int(fields[1])
+            symbol = fields[2]
+            genes[gene_id] = symbol
+    return genes
 
-        for line1 in islice(f1, 1, None):
+
+def get_clones(mapping):
+    clones = {}
+    with open(mapping) as f:
+        for line in islice(f, 1, None):
             try:
-                # print line1
-                bc, ac, length, proteins = line1.split("\t")
+                orf, well, gene, ac, length, Nproteins = line.split("\t")
                 # VERY STRICT MAPPING. USE ONLY clones that map uniquily to a single protein
-                if int(proteins) > 1 and bc in bc_gene:
-                    # bcB, geneB, len_prot_B
-                    all_clones[ac] = bc, bc_gene[bc], int(length)
+                if int(Nproteins) == 1:
+                    clones[ac] = orf, well, int(gene), int(length)
             except:
                 raise
                 pass
-    return all_clones
+    return clones
+
 
 
 if __name__ == '__main__':
@@ -451,24 +464,18 @@ if __name__ == '__main__':
 
     vidal_fname = "/Users/agoncear/data/Vidal/Human/ALL.tsv"
     emili_fname = DIR + "Interactomes/human/Emili_interactions.csv"
-    mapping_fname = "/Users/agoncear/data/Vidal/Human/uniprot_mapping_unique_genes.tab"
-
-    infile = DIR + "Alignments/matches_Hsapiens.tab.gz"
-    outfile = DIR + "Interactomes/human/Hsapiens-2.tab"
-
-    clones_mapping = DIR + "Interactomes/human/mapping.tab"
-    mgc_mapping = "/Users/agoncear/data/MGC/StaticCloneList"
-    clones = get_mgc_clones(clones_mapping, mgc_mapping)
-    # print clones
-
-    # clones, clones_by_id = get_vidal_clones(mapping_fname)
     vidal = get_vidal(vidal_fname)
-    print vidal
+    # print vidal
     emili = get_emili(emili_fname)
-    print emili
+    # print emili
     # validation_pairs = validation_vidal(clones_by_id, vidal_fname)
 
+    genes = get_genes("/Users/agoncear/data/Genes/Homo_sapiens.gene_info.gz")
+    clones = get_clones(DIR + "Interactomes/human/mapping.tab")
+    # print clones
+
+    infile = DIR + "Alignments/matches_Hsapiens.tab.gz"
+    outfile = DIR + "Interactomes/human/Hsapiens-3.tab"
     accessions = uniprot_accessions()
     print "Uniprot", len(accessions)
-    savefile(infile, outfile, accessions=accessions, clones=clones, vidal=vidal, emili=emili)
-
+    savefile(infile, outfile, accessions=accessions, clones=clones, genes=genes, vidal=vidal, emili=emili)

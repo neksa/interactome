@@ -7,7 +7,7 @@ from itertools import islice, ifilter
 
 app = Flask(__name__)
 
-engine = create_engine('postgresql://localhost/agoncear', convert_unicode=True, echo=True)
+engine = create_engine('mysql://localhost/agoncear', convert_unicode=True, echo=True)
 metadata = MetaData(bind=engine)
 
 species = Table('species', metadata, autoload=True)

@@ -49,28 +49,6 @@ def pdb_proteins(pdb_path, fname):
     return pdb_uniprot, chain_author_to_mmcif
 
 
-# def protein_genes():
-#     d = "/Users/agoncear/data/pdbsws/"
-#     uniprot_gene_fname = d + "pir-id-mapping.tab"
-#     # pdb_uniprot_fname = d + "pdb_uniprot_chain_map.lst.2"
-#     uniprot_gene = defaultdict(list)
-#     # pdb_uniprot = defaultdict(list)
-#     with open(uniprot_gene_fname) as f1:  # , open(pdb_uniprot_fname) as f2:
-#         for line in f1:
-#             # print line
-#             fields = line.strip().split()
-#             if len(fields) == 2:
-#                 uniprot, gene = fields
-#                 gene = int(gene)
-#                 uniprot_gene[uniprot].append(gene)
-#     return uniprot_gene
-
-
-def site_analysis(site):
-    bs_len = len(site)
-    ncontacts = sum([r.ncontacts for r in site])
-    return bs_len, ncontacts
-
 
 def main():
     root = "/Users/agoncear/projects/Interactome/Workflow"
