@@ -10,6 +10,12 @@
     <!-- Bootstrap -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
 
+<!--     <css>
+        .frame {
+            padding: 20px;
+        }
+    </css>
+ -->
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -72,7 +78,7 @@ Retrieve all known variants given a residue number in a PDB structure.
         //     search="/interface/{{taxa}}/"+ $("#in1").val() + "/" + $("#in2").val() + "/";
         //     window.location=search;
         // });
-        var rest_prefix = "{{ url_for('.home') }}rest/pipeline/";
+        var rest_prefix = "{{ url_for('.home') }}{{ prefix }}".substr(1);
         $("#api1").data('url', rest_prefix  + "structures/protein/");
         $("#api2").data('url', rest_prefix  + "structures/compound/");
         $("#api3").data('url', rest_prefix  + "binding-sites/observed/protein-protein/pdb/");
@@ -109,25 +115,21 @@ Retrieve all known variants given a residue number in a PDB structure.
 
 </head>
 <body>
-<h1>Testing IBIS REST API</h1>
+<h3>Testing IBIS REST API</h3>
 <br>
 
 
-<div class="container-fluid">
+<div class="container">
 
 <!--     <div class="row">
         <div class="col-lg-12">
-            <form class="form-inline" role="form">
-                <div class="form-group">
-                    <label>/structures/protein/<PROTEIN NAME></label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">A</div>
-                        <input id="in1" type="text" class="form-control">
-                        <div class="input-group-addon">B</div>
-                        <input id="in2" type="text" class="form-control">
-                    </div>
+            <form class="form-search" role="form">
+                    <h4>/structures/protein/<PROTEIN NAME></h4>
+                        A
+                        <input id="in1" type="text">
+                        B
+                        <input id="in2" type="text">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -136,15 +138,11 @@ Retrieve all known variants given a residue number in a PDB structure.
  -->
     <div class="row">
         <div class="col-lg-12">
-            <form id="api1" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>1. /structures/protein/PROTEIN_NAME</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">protein or gene name</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                    </div>
+            <form id="api1" class="form-search" role="form" method="GET" action="">
+                    <h4>1. /structures/protein/PROTEIN_NAME</h4>
+                        protein or gene name
+                        <input name="input1" type="text" value="">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -153,15 +151,11 @@ Retrieve all known variants given a residue number in a PDB structure.
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="api2" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>2. /structures/compound/COMPOUND_ID</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">compound id</div>
-                        <input name="input1" type="text" class="form-control" value="" placeholder="71304809">
-                    </div>
+            <form id="api2" class="form-search" role="form" method="GET" action="">
+                    <h4>2. /structures/compound/COMPOUND_ID</h4>
+                        compound id
+                        <input name="input1" type="text" value="" placeholder="71304809">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -170,17 +164,13 @@ Retrieve all known variants given a residue number in a PDB structure.
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="api3" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>3. /binding-sites/observed/protein-protein/pdb/PDB/[CHAIN]</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">pdb</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                        <div class="input-group-addon">entity (chain)</div>
-                        <input name="input2" type="text" class="form-control" value="">
-                    </div>
+            <form id="api3" class="form-search" role="form" method="GET" action="">
+                    <h4>3. /binding-sites/observed/protein-protein/pdb/PDB/[CHAIN]</h4>
+                        pdb
+                        <input name="input1" type="text" value="4HG7">
+                        entity (chain)
+                        <input name="input2" type="text" value="">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -189,17 +179,13 @@ Retrieve all known variants given a residue number in a PDB structure.
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="api4" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>4. /binding-sites/observed/protein-compound/pdb/PDB/[CHAIN]</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">pdb</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                        <div class="input-group-addon">entity (chain)</div>
-                        <input name="input2" type="text" class="form-control" value="">
-                    </div>
+            <form id="api4" class="form-search" role="form" method="GET" action="">
+                    <h4>4. /binding-sites/observed/protein-compound/pdb/PDB/[CHAIN]</h4>
+                        pdb
+                        <input name="input1" type="text" value="4HG7">
+                        entity (chain)
+                        <input name="input2" type="text" value="">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -208,17 +194,13 @@ Retrieve all known variants given a residue number in a PDB structure.
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="api5" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>5. /binding-sites/inferred/protein-protein/pdb/PDB/[CHAIN]</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">pdb</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                        <div class="input-group-addon">entity (chain)</div>
-                        <input name="input2" type="text" class="form-control" value="">
-                    </div>
+            <form id="api5" class="form-search" role="form" method="GET" action="">
+                    <h4>5. /binding-sites/inferred/protein-protein/pdb/PDB/[CHAIN]</h4>
+                        pdb
+                        <input name="input1" type="text" value="4HG7">
+                        entity (chain)
+                        <input name="input2" type="text" value="">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -227,17 +209,13 @@ Retrieve all known variants given a residue number in a PDB structure.
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="api6" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>6. /binding-sites/inferred/protein-compound/pdb/PDB/[CHAIN]</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">pdb</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                        <div class="input-group-addon">entity (chain)</div>
-                        <input name="input2" type="text" class="form-control" value="">
-                    </div>
+            <form id="api6" class="form-search" role="form" method="GET" action="">
+                    <h4>6. /binding-sites/inferred/protein-compound/pdb/PDB/[CHAIN]</h4>
+                        pdb
+                        <input name="input1" type="text" value="4HG7">
+                        entity (chain)
+                        <input name="input2" type="text" value="">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -245,15 +223,11 @@ Retrieve all known variants given a residue number in a PDB structure.
     <div class="row"><div class="col col-lg-12"><hr></div></div>
     <div class="row">
         <div class="col-lg-12">
-            <form id="api7" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>7. /binding-sites/observed/protein-compound/compound/COMPOUND</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">compound ID</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                    </div>
+            <form id="api7" class="form-search" role="form" method="GET" action="">
+                    <h4>7. /binding-sites/observed/protein-compound/compound/COMPOUND</h4>
+                        compound ID
+                        <input name="input1" type="text" value="4HG7">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -262,15 +236,11 @@ Retrieve all known variants given a residue number in a PDB structure.
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="api8" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>8. /compounds/similar/compound/COMPOUND</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">compound ID</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                    </div>
+            <form id="api8" class="form-search" role="form" method="GET" action="">
+                    <h4>8. /compounds/similar/compound/COMPOUND</h4>
+                        compound ID
+                        <input name="input1" type="text" value="11433190">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -279,15 +249,11 @@ Retrieve all known variants given a residue number in a PDB structure.
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="api9" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>9. /compounds/interacting/protein/PROTEIN_NAME</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">protein or gene name</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                    </div>
+            <form id="api9" class="form-search" role="form" method="GET" action="">
+                    <h4>9. /compounds/interacting/protein/PROTEIN_NAME</h4>
+                        protein or gene name
+                        <input name="input1" type="text" value="">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
@@ -296,19 +262,15 @@ Retrieve all known variants given a residue number in a PDB structure.
 
     <div class="row">
         <div class="col-lg-12">
-            <form id="api10" class="form-inline" role="form" method="GET" action="">
-                <div class="form-group">
-                    <label>10. /variants/pdb/PDB/CHAIN/RESIDUE</label><br>
-                    <div class="input-group">  
-                        <div class="input-group-addon">pdb</div>
-                        <input name="input1" type="text" class="form-control" value="">
-                        <div class="input-group-addon">entity (chain)</div>
-                        <input name="input2" type="text" class="form-control" value="">
-                        <div class="input-group-addon">residue</div>
-                        <input name="input3" type="text" class="form-control" value="">
-                    </div>
+            <form id="api10" class="form-search" role="form" method="GET" action="">
+                    <h4>10. /variants/pdb/PDB/CHAIN/RESIDUE</h4>
+                        pdb
+                        <input name="input1" type="text" value="">
+                        entity (chain)
+                        <input name="input2" type="text" value="">
+                        residue
+                        <input name="input3" type="text" value="">
                     <button id="submit_btn" class="btn btn-default">Request</button>
-                </div>
             </form>
         </div>
     </div>
