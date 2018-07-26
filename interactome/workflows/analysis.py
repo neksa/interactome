@@ -11,11 +11,11 @@ from interactome.interfaces.interface import Interface
 
 
 def get_pdb_path():
-    return "/Users/agoncear/data/pdb"
+    return "/panfs/pan1.be-md.ncbi.nlm.nih.gov/interactomes/pdb"
 
 
 def get_results_path():
-    return "/Users/agoncear/projects/Interactome/Workflow/Interfaces"
+    return "/panfs/pan1.be-md.ncbi.nlm.nih.gov/interactomes/pipeline/Interactome/Workflow/Interfaces"
 
 
 def get_threshold():
@@ -34,6 +34,10 @@ def extract_contacts(params):
     #     iface = Interface(get_results_path(), get_threshold())
     #     iteratoms = mmcif.iterAtoms()
     #     n = iface.findContacts(code, iteratoms)
+
+    iface = Interface(get_results_path(), get_threshold())
+    iteratoms = mmcif.iterAtoms()
+    n = iface.findContacts(code, iteratoms)
 
     # Extract mapping:
     try:
