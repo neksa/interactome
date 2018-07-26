@@ -5,3 +5,4 @@ Workflow.bak
 Workflow
 *.xml
 *.fasta
+*.pyc
