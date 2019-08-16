@@ -16,7 +16,7 @@ Acknowledgements:
 
  The tokenizer used in this module is modeled after the clever parser design
  used in the PyMMLIB package.
- 
+
  PyMMLib Development Group
  Authors: Ethan Merritt: merritt@u.washington.ed  & Jay Painter: jay.painter@gmail.com
  See:  http://pymmlib.sourceforge.net/
@@ -24,15 +24,15 @@ Acknowledgements:
 """
 
 import re,sys
-from PdbxContainers import *
+from .PdbxContainers import *
 
 class PdbxError(Exception):
-    """ Class for catch general errors 
+    """ Class for catch general errors
     """
     pass
 
 class SyntaxError(Exception):
-    """ Class for catching syntax errors 
+    """ Class for catching syntax errors
     """
     def __init__(self, lineNumber, text):
         Exception.__init__(self)
@@ -45,24 +45,24 @@ class SyntaxError(Exception):
 
 class PdbxReader(object):
     """ PDBx reader for data files and dictionaries.
-    
+
     """
     def __init__(self,ifh):
         """  ifh - input file handle returned by open()
         """
-        # 
-        self.__curLineNumber = 0        
+        #
+        self.__curLineNumber = 0
         self.__ifh=ifh
         self.__stateDict={"data":   "ST_DATA_CONTAINER",
                           "loop":   "ST_TABLE",
                           "global": "ST_GLOBAL_CONTAINER",
                           "save":   "ST_DEFINITION",
                           "stop":   "ST_STOP"}
-        
+
     def read(self, containerList):
         """
         Appends to the input list of definition and data containers.
-        
+
         """
         self.__curLineNumber = 0
         try:
@@ -79,12 +79,12 @@ class PdbxReader(object):
         """ Returns the name of the data_ or save_ container
         """
         return str(inWord[5:]).strip()
-    
+
     def __getState(self, inWord):
-        """Identifies reserved syntax elements and assigns an associated state.  
+        """Identifies reserved syntax elements and assigns an associated state.
 
            Returns: (reserved word, state)
-           where - 
+           where -
               reserved word -  is one of CIF syntax elements:
                                data_, loop_, global_, save_, stop_
               state - the parser state required to process this next section.
@@ -94,11 +94,11 @@ class PdbxReader(object):
             return None,"ST_UNKNOWN"
 
         try:
-            rWord=inWord[:i].lower()            
+            rWord=inWord[:i].lower()
             return rWord, self.__stateDict[rWord]
         except:
             return None,"ST_UNKNOWN"
-        
+
     def __parser(self, tokenizer, containerList):
         """ Parser for PDBx data files and dictionaries.
 
@@ -110,12 +110,12 @@ class PdbxReader(object):
                                      from the input file.
 
             Return:
-                    containerList - is appended with data and definition objects - 
+                    containerList - is appended with data and definition objects -
         """
         # Working container - data or definition
         curContainer = None
         #
-        # Working category container 
+        # Working category container
         categoryIndex = {}
         curCategory = None
         #
@@ -131,13 +131,13 @@ class PdbxReader(object):
             reservedWord, state  = self.__getState(curWord)
             if reservedWord is not None:
                 break
-        
+
         while True:
             #
             #  Set the current state  -
             #
             #  At this point in the processing cycle we are expecting a token containing
-            #  either a '_category.attribute'  or a reserved word.  
+            #  either a '_category.attribute'  or a reserved word.
             #
             if curCatName is not None:
                 state = "ST_KEY_VALUE_PAIR"
@@ -145,16 +145,16 @@ class PdbxReader(object):
                 reservedWord, state = self.__getState(curWord)
             else:
                 self.__syntaxError("Miscellaneous syntax error")
-                return            
+                return
 
             #
-            # Process  _category.attribute  value assignments 
+            # Process  _category.attribute  value assignments
             #
             if state == "ST_KEY_VALUE_PAIR":
                 try:
                     curCategory = categoryIndex[curCatName]
                 except KeyError:
-                    # A new category is encountered - create a container and add a row 
+                    # A new category is encountered - create a container and add a row
                     curCategory = categoryIndex[curCatName] = DataCategory(curCatName)
 
                     try:
@@ -163,12 +163,12 @@ class PdbxReader(object):
                         self.__syntaxError("Category cannot be added to  data_ block")
                         return
 
-                    curRow = []                    
+                    curRow = []
                     curCategory.append(curRow)
                 else:
                     # Recover the existing row from the category
                     try:
-                        curRow = curCategory[0] 
+                        curRow = curCategory[0]
                     except IndexError:
                         self.__syntaxError("Internal index error accessing category data")
                         return
@@ -188,8 +188,8 @@ class PdbxReader(object):
                     self.__syntaxError("Missing data for item _%s.%s" % (curCatName,curAttName))
 
                 if curWord is not None:
-                    # 
-                    # Validation check token for misplaced reserved words  -  
+                    #
+                    # Validation check token for misplaced reserved words  -
                     #
                     reservedWord, state  = self.__getState(curWord)
                     if reservedWord is not None:
@@ -234,10 +234,10 @@ class PdbxReader(object):
 
                 curCategory.appendAttribute(curAttName)
 
-                # Read the rest of the loop_ declaration 
+                # Read the rest of the loop_ declaration
                 while True:
                     curCatName, curAttName, curQuotedString, curWord = tokenizer.next()
-                    
+
                     if curCatName is None:
                         break
 
@@ -248,7 +248,7 @@ class PdbxReader(object):
                     curCategory.appendAttribute(curAttName)
 
 
-                # If the next token is a 'word', check it for any reserved words - 
+                # If the next token is a 'word', check it for any reserved words -
                 if curWord is not None:
                     reservedWord, state  = self.__getState(curWord)
                     if reservedWord is not None:
@@ -256,10 +256,10 @@ class PdbxReader(object):
                             return
                         else:
                             self.__syntaxError("Unexpected reserved word after loop declaration: %s" % (reservedWord))
-                    
-                # Read the table of data for this loop_ - 
+
+                # Read the table of data for this loop_ -
                 while True:
-                    curRow = []                    
+                    curRow = []
                     curCategory.append(curRow)
 
                     for tAtt in curCategory.getAttributeList():
@@ -270,7 +270,7 @@ class PdbxReader(object):
 
                         curCatName,curAttName,curQuotedString,curWord = tokenizer.next()
 
-                    # loop_ data processing ends if - 
+                    # loop_ data processing ends if -
 
                     # A new _category.attribute is encountered
                     if curCatName is not None:
@@ -281,7 +281,7 @@ class PdbxReader(object):
                         reservedWord, state = self.__getState(curWord)
                         if reservedWord is not None:
                             break
-                        
+
                 continue
 
 
@@ -320,10 +320,10 @@ class PdbxReader(object):
             elif state == "ST_UNKNOWN":
                 self.__syntaxError("Unrecogized syntax element: " + str(curWord))
                 return
-                
+
 
     def __tokenizer(self, ifh):
-        """ Tokenizer method for the mmCIF syntax file - 
+        """ Tokenizer method for the mmCIF syntax file -
 
             Each return/yield from this method returns information about
             the next token in the form of a tuple with the following structure.
@@ -342,7 +342,7 @@ class PdbxReader(object):
              "(?:_(.+?)[.](\S+))"               "|"  # _category.attribute
 
              "(?:['](.*?)(?:[']\s|[']$))"       "|"  # single quoted strings
-             "(?:[\"](.*?)(?:[\"]\s|[\"]$))"    "|"  # double quoted strings             
+             "(?:[\"](.*?)(?:[\"]\s|[\"]$))"    "|"  # double quoted strings
 
              "(?:\s*#.*$)"                      "|"  # comments (dumped)
 
@@ -360,7 +360,7 @@ class PdbxReader(object):
             # Dump comments
             if line.startswith("#"):
                 continue
-            
+
             # Gobble up the entire semi-colon/multi-line delimited string and
             #    and stuff this into the string slot in the return tuple
             #
@@ -397,7 +397,7 @@ class PdbxReader(object):
                     yield groups
 
     def __tokenizerOrg(self, ifh):
-        """ Tokenizer method for the mmCIF syntax file - 
+        """ Tokenizer method for the mmCIF syntax file -
 
             Each return/yield from this method returns information about
             the next token in the form of a tuple with the following structure.
@@ -431,7 +431,7 @@ class PdbxReader(object):
             # Dump comments
             if line.startswith("#"):
                 continue
-            
+
             # Gobble up the entire semi-colon/multi-line delimited string and
             #    and stuff this into the string slot in the return tuple
             #
@@ -453,7 +453,7 @@ class PdbxReader(object):
                 line = line[1:]
                 #continue
 
-            ## Apply regex to the current line 
+            ## Apply regex to the current line
             for it in mmcifRe.finditer(line):
                 groups = it.groups()
                 if groups != (None, None, None, None):

@@ -1,6 +1,7 @@
 """
 mmCIF loading using parsers from pdbx
 """
+from __future__ import print_function
 
 import os
 import fnmatch
@@ -10,7 +11,7 @@ from collections import namedtuple, defaultdict
 
 from pdbx.reader.PdbxReader import PdbxReader
 from pdbx.reader.PdbxContainers import *
-from struct import Struct, Atom, ChainProteinMap
+from .struct import Struct, Atom, ChainProteinMap
 
 mmCIFMeta = namedtuple('Metadata', 'id, method, title, description')
 
@@ -28,7 +29,7 @@ class mmCifFile(Struct):
 
     def getChains(self):
         chains = set([a.chain for a in self.iterAtoms()])
-        print chains
+        # print(chains)
         return chains
 
     def getPDBChainMapping(self):
@@ -87,31 +88,31 @@ class mmCifFile(Struct):
         """
 
         """
-        _struct_ref_seq.align_id 
-        _struct_ref_seq.ref_id 
-        _struct_ref_seq.pdbx_PDB_id_code 
-        _struct_ref_seq.pdbx_strand_id 
-        _struct_ref_seq.seq_align_beg 
-        _struct_ref_seq.pdbx_seq_align_beg_ins_code 
-        _struct_ref_seq.seq_align_end 
-        _struct_ref_seq.pdbx_seq_align_end_ins_code 
-        _struct_ref_seq.pdbx_db_accession 
-        _struct_ref_seq.db_align_beg 
-        _struct_ref_seq.db_align_end 
-        _struct_ref_seq.pdbx_auth_seq_align_beg 
-        _struct_ref_seq.pdbx_auth_seq_align_end 
-        1  1 3B5N A 2 ? 61 ? P31109 27  86  27  86  
-        2  2 3B5N B 1 ? 69 ? P32867 189 257 189 257 
-        3  3 3B5N C 3 ? 69 ? P40357 433 499 433 499 
-        4  4 3B5N D 3 ? 64 ? P40357 589 650 589 650 
-        5  1 3B5N E 2 ? 61 ? P31109 27  86  27  86  
-        6  2 3B5N F 1 ? 69 ? P32867 189 257 189 257 
-        7  3 3B5N G 3 ? 69 ? P40357 433 499 433 499 
-        8  4 3B5N H 3 ? 64 ? P40357 589 650 589 650 
-        9  1 3B5N I 2 ? 61 ? P31109 27  86  27  86  
-        10 2 3B5N J 1 ? 69 ? P32867 189 257 189 257 
-        11 3 3B5N K 3 ? 69 ? P40357 433 499 433 499 
-        12 4 3B5N L 3 ? 64 ? P40357 589 650 589 650 
+        _struct_ref_seq.align_id
+        _struct_ref_seq.ref_id
+        _struct_ref_seq.pdbx_PDB_id_code
+        _struct_ref_seq.pdbx_strand_id
+        _struct_ref_seq.seq_align_beg
+        _struct_ref_seq.pdbx_seq_align_beg_ins_code
+        _struct_ref_seq.seq_align_end
+        _struct_ref_seq.pdbx_seq_align_end_ins_code
+        _struct_ref_seq.pdbx_db_accession
+        _struct_ref_seq.db_align_beg
+        _struct_ref_seq.db_align_end
+        _struct_ref_seq.pdbx_auth_seq_align_beg
+        _struct_ref_seq.pdbx_auth_seq_align_end
+        1  1 3B5N A 2 ? 61 ? P31109 27  86  27  86
+        2  2 3B5N B 1 ? 69 ? P32867 189 257 189 257
+        3  3 3B5N C 3 ? 69 ? P40357 433 499 433 499
+        4  4 3B5N D 3 ? 64 ? P40357 589 650 589 650
+        5  1 3B5N E 2 ? 61 ? P31109 27  86  27  86
+        6  2 3B5N F 1 ? 69 ? P32867 189 257 189 257
+        7  3 3B5N G 3 ? 69 ? P40357 433 499 433 499
+        8  4 3B5N H 3 ? 64 ? P40357 589 650 589 650
+        9  1 3B5N I 2 ? 61 ? P31109 27  86  27  86
+        10 2 3B5N J 1 ? 69 ? P32867 189 257 189 257
+        11 3 3B5N K 3 ? 69 ? P40357 433 499 433 499
+        12 4 3B5N L 3 ? 64 ? P40357 589 650 589 650
         """
 
         # This one is a very complex case with insertions/deletions:
@@ -120,25 +121,25 @@ class mmCifFile(Struct):
 
         """
         loop_
-        _struct_ref_seq.align_id 
-        _struct_ref_seq.ref_id 
-        _struct_ref_seq.pdbx_PDB_id_code 
-        _struct_ref_seq.pdbx_strand_id 
-        _struct_ref_seq.seq_align_beg 
-        _struct_ref_seq.pdbx_seq_align_beg_ins_code 
-        _struct_ref_seq.seq_align_end 
-        _struct_ref_seq.pdbx_seq_align_end_ins_code 
-        _struct_ref_seq.pdbx_db_accession 
-        _struct_ref_seq.db_align_beg 
-        _struct_ref_seq.pdbx_db_align_beg_ins_code 
-        _struct_ref_seq.db_align_end 
-        _struct_ref_seq.pdbx_db_align_end_ins_code 
-        _struct_ref_seq.pdbx_auth_seq_align_beg 
-        _struct_ref_seq.pdbx_auth_seq_align_end 
-        1 1 1UX4 A 1  ? 61  ? P41832 1352 ? 1412 ? 1352 1412 
-        2 1 1UX4 A 62 ? 410 ? P41832 1417 ? 1765 ? 1417 1765 
-        3 1 1UX4 B 1  ? 61  ? P41832 1352 ? 1412 ? 2352 2412 
-        4 1 1UX4 B 62 ? 410 ? P41832 1417 ? 1765 ? 2417 2765 
+        _struct_ref_seq.align_id
+        _struct_ref_seq.ref_id
+        _struct_ref_seq.pdbx_PDB_id_code
+        _struct_ref_seq.pdbx_strand_id
+        _struct_ref_seq.seq_align_beg
+        _struct_ref_seq.pdbx_seq_align_beg_ins_code
+        _struct_ref_seq.seq_align_end
+        _struct_ref_seq.pdbx_seq_align_end_ins_code
+        _struct_ref_seq.pdbx_db_accession
+        _struct_ref_seq.db_align_beg
+        _struct_ref_seq.pdbx_db_align_beg_ins_code
+        _struct_ref_seq.db_align_end
+        _struct_ref_seq.pdbx_db_align_end_ins_code
+        _struct_ref_seq.pdbx_auth_seq_align_beg
+        _struct_ref_seq.pdbx_auth_seq_align_end
+        1 1 1UX4 A 1  ? 61  ? P41832 1352 ? 1412 ? 1352 1412
+        2 1 1UX4 A 62 ? 410 ? P41832 1417 ? 1765 ? 1417 1765
+        3 1 1UX4 B 1  ? 61  ? P41832 1352 ? 1412 ? 2352 2412
+        4 1 1UX4 B 62 ? 410 ? P41832 1417 ? 1765 ? 2417 2765
         """
 
         if self.block is None:
@@ -299,20 +300,20 @@ class mmCifFile(Struct):
         assembly_gen = self.block.getObj("pdbx_struct_assembly_gen")
         n_gen = assembly_gen.getRowCount()
         if debug:
-            print "NGEN", n_gen
+            print("NGEN", n_gen)
 
         for gen in range(n_gen):
             # asm_id is the main parameter! copied from self.asm
             assemblyId = assembly_gen.getValue("assembly_id", gen)
             if debug:
-                print "ASM???", assemblyId, asm_id
+                print("ASM???", assemblyId, asm_id)
             if int(assemblyId) != asm_id:
                 continue
 
             # Operator expression. We need to parse it
             oper_expression = assembly_gen.getValue("oper_expression", gen)
             if debug:
-                print "Oper expression", oper_expression
+                print("Oper expression", oper_expression)
 
             # how many parentheses
             paren_count = oper_expression.count("(")
@@ -334,9 +335,9 @@ class mmCifFile(Struct):
             asym_id_list = assembly_gen.getValue("asym_id_list", gen)
 
             if debug:
-                print "Asym id list", asym_id_list
-                print "Oper1", oper1
-                print "Oper2", oper2
+                print("Asym id list", asym_id_list)
+                print("Oper1", oper1)
+                print("Oper2", oper2)
 
             # For every operation in the first parenthesized list
             for op1 in oper1:
@@ -360,14 +361,14 @@ class mmCifFile(Struct):
                     # Prepare the operation matrix
                     operation = self.prepareOperation(oper_list, op1_index, op2_index)
                     if debug:
-                        print "OPERATION", operation
+                        print("OPERATION", operation)
 
                     # Iterate over every atom in the atom_site reference table
                     for r in range(atom_site_obj_ref.getRowCount()):
                         # If the asym_id of the current atom is not in the asym_id list, skip to the next atom
                         if asym_id_list.find(atom_site_obj_ref.getValue("label_asym_id", r)) == -1:
                             if debug:
-                                print "-" + atom_site_obj_ref.getValue("label_asym_id", r),
+                                print("-" + atom_site_obj_ref.getValue("label_asym_id", r), end='')
                             continue
 
                         # Only the first model of the original structure.

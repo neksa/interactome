@@ -64,8 +64,8 @@ class Complexes:
             try:
                 site_index = seqresi.index(h)
                 if ha != '-' and ha != sites[site_index].resn:
-                    print "the interface residue in template hit (SEQRES)", pdb, chain, h, ha, \
-                          "does not match what's in the structure (ATOMRES):", sites[site_index].seqresi, sites[site_index].resi, sites[site_index].resn
+                    print("the interface residue in template hit (SEQRES)", pdb, chain, h, ha,
+                          "does not match what's in the structure (ATOMRES):", sites[site_index].seqresi, sites[site_index].resi, sites[site_index].resn)
                     aln[site_index] = '@'
                 else:
                     aln[site_index] = qa
@@ -249,7 +249,7 @@ class Complexes:
                 try:
                     chain1, resn1, resi1, atm1, chain2, resn2, resi2, atm2, d12 = line.strip().split()
                 except:
-                    print "Error while parsing the line: ", line.strip()
+                    print("Error while parsing the line: ", line.strip())
                     continue
                 d12 = float(d12)
                 # dCA12 = float (dCA12)
@@ -290,7 +290,7 @@ class Complexes:
                         contacts = self.getInterface(fname_int, distance_threshold)
                         # print cnt
                         cnt += 1
-                        print cnt, pdb
+                        print(cnt, pdb)
                         # if cnt > 1000: continue
                         for (chain1, chain2), (site1, site2) in contacts.iteritems():
                             # print cnt, pdb, chain1, chain2
@@ -308,6 +308,6 @@ class Complexes:
                             str_site2 = ";".join(["{},{},{}".format(k[0], k[1], v) for k, v in site2.iteritems()])
                             o.write("{}\t{}\t{}\t{}\t{}\n".format(pdb, chain1, chain2, str_site1, str_site2))
                             # print "{}\t{}\t{}\t{}\t{}\n".format(pdb, chain1, chain2, str_site1, str_site2)
-        except Exception, e:
+        except Exception as e:
             os.remove(fname)
             raise e

@@ -103,7 +103,7 @@ def main():
         with open(pdb_templates_fname):
             pass
     except IOError:
-        complexes.collectTemplates(pdb_path, pdb_templates_fname)
+        complexes.collectTemplates(pdb_path, pdb_templates_fname, min_number_of_contacts=1, distance_threshold=5.0)
 
     templates = complexes.loadTemplates(pdb_templates_fname)  # , mapping)
     templates2 = complexes.loadTemplates(pdb_templates_fname)  # , mapping)

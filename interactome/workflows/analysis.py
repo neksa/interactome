@@ -125,7 +125,7 @@ def isNMR(params):
 
 if __name__ == '__main__':
     mmcif = mmCifFile(get_pdb_path())
-    pool = mp.Pool(8, init_worker)
+    pool = mp.Pool(16, init_worker)
     # isNMR.method = {}
     # with open(get_pdb_path()+"/derived_data/pdb_entry_type.txt", 'r') as f:
     #     for line in f:
