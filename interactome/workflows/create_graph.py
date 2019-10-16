@@ -30,7 +30,8 @@ def read_uniprot_mapping(fname):
 
 
 def main():
-    d = "/net/pan1/interactomes/pipeline/"
+    # d = "/net/pan1/interactomes/pipeline/"
+    d = "/panfs/pan1.be-md.ncbi.nlm.nih.gov/interactomes/pipeline/"
 
     # roc_d = d + "/Benchmarks/Ecoli"
     # matches_ecoli = d + "/Alignments/matches_ecoli.tab"

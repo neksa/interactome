@@ -45,9 +45,16 @@ class Interface:
         kdtrees = defaultdict(list)
         # chain_suffix = 0
 
-        for atom in iteratoms:
-            atoms[atom.chain].append(atom)
-            coords[atom.chain].append(atom.xyz)
+        try:
+            for atom in iteratoms:
+                atoms[atom.chain].append(atom)
+                coords[atom.chain].append(atom.xyz)
+                # print(len(atoms[atom.chain]))
+        except Exception as e:
+            print(e)
+            # traceback.print_exc()
+            # raise
+        print(atoms.keys())
         chains = sorted(atoms.keys())
 
         for chain in chains:

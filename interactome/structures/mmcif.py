@@ -375,6 +375,8 @@ class mmCifFile(Struct):
                         # We do not need all atoms in all models, only the first one
                         model = int(atom_site_obj_ref.getValue("pdbx_PDB_model_num", r))
                         if only_models is not None:
+                            # if debug:
+                            #     print("Model {}".format(model))
                             if model not in only_models:
                                 continue
 
@@ -452,15 +454,19 @@ class mmCifFile(Struct):
         """
         for i in range(atom_site_obj.getRowCount()):
             # row = atom_site_obj.getFullRow(i)
+            # print(row)
             # print "\t".join(row)
-            if atom_site_obj.getValue("group_PDB", i) != "ATOM":
-                continue
+            # if atom_site_obj.getValue("group_PDB", i) != "ATOM":   ##exclude the hetatom from the calculations and 
+            #     continue                                           ##comment this line to include PTMs 
 
             atomn = atom_site_obj.getValue("label_atom_id", i)
             element = atom_site_obj.getValue("type_symbol", i)
             atomi = int(atom_site_obj.getValue("id", i))
             resn = atom_site_obj.getValue("label_comp_id", i)  # auth_comp_id
-            resi = int(atom_site_obj.getValue("label_seq_id", i))
+            try:
+                resi = int(atom_site_obj.getValue("label_seq_id", i))
+            except:
+                resi = 0
             chain_real = atom_site_obj.getValue("label_asym_id", i)  # auth_asym_id, label_entity_id
             chain_author = atom_site_obj.getValue("auth_asym_id", i)
 
@@ -468,8 +474,13 @@ class mmCifFile(Struct):
 
             # do not report atoms in unknown amino acids
             # i.e. nucleic acids, ions, and ligands will not be reported
-            if resn_short is None:
-                continue
+            # if resn_short is None:
+            #   continue
+            if resn_short is None:        ## report non-solvent atoms inlcuding nucleic acids, ions, and ligands
+                if resn != "HOH":           ## to include amino acid with PTMs in the results 
+                    resn_short = resn
+                else:
+                    continue
 
             model = int(atom_site_obj.getValue("pdbx_PDB_model_num", i))
             chain = "{}_{}".format(chain_real, model - 1) if model > 1 else chain_real

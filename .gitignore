@@ -6,3 +6,5 @@ Workflow
 *.xml
 *.fasta
 *.pyc
+._*
+.DS_Store

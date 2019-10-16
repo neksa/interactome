@@ -2,6 +2,7 @@
 ** How to update precalculated data **
 
 1. Fetch new PDB structures with
+cd /net/pan1/interactomes
     update_PDB.sh
 
 2. Activate python environment

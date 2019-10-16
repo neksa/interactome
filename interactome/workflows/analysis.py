@@ -6,16 +6,20 @@ import sys
 
 import multiprocessing as mp
 
+from itertools import ifilter
+
 from interactome.structures.mmcif import mmCifFile
 from interactome.interfaces.interface import Interface
 
 
 def get_pdb_path():
     return "/panfs/pan1.be-md.ncbi.nlm.nih.gov/interactomes/pdb"
+    # return "/net/pan1/interactomes/pdb"
 
 
 def get_results_path():
     return "/panfs/pan1.be-md.ncbi.nlm.nih.gov/interactomes/pipeline/Interactome/Workflow/Interfaces"
+    # return "/net/pan1/interactomes/pipeline/Interactome/Workflow/Interfaces"
 
 
 def get_threshold():
@@ -90,7 +94,8 @@ def get_mapping_fname(code):
 
 
 def init_worker():
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    # signal.signal(signal.SIGINT, signal.SIG_IGN)
+    pass
 
 
 def isNMR(params):
@@ -122,28 +127,30 @@ def isNMR(params):
 #     """
 #     pass
 
-
 if __name__ == '__main__':
     mmcif = mmCifFile(get_pdb_path())
-    pool = mp.Pool(16, init_worker)
+    pool = mp.Pool(32, init_worker)
     # isNMR.method = {}
     # with open(get_pdb_path()+"/derived_data/pdb_entry_type.txt", 'r') as f:
     #     for line in f:
     #         code, entities, method = line.strip().split()
     #         isNMR.method[code] = method
-    # pool.imap_unordered(extract_contacts, ifilter(isNMR, mmcif.listAll()))
-    pool.imap_unordered(extract_contacts, mmcif.listAll())
+    # structure_list = [('10gs', '/panfs/pan1.be-md.ncbi.nlm.nih.gov/interactomes/pdb/mmcif/0g/10gs.cif.gz')]
+    structure_list = mmcif.listAll()
+    pool.imap_unordered(extract_contacts, structure_list)
+
+    # pool.imap_unordered(extract_contacts, mmcif.listAll())
     # pool.imap_unordered(extract_protein_mapping, mmcif.listAll())
 
-    try:
-        while(True):
-            print "Watchdog... every 60 seconds (Ctrl-C to interrupt)"
-            time.sleep(60)
-
-    except KeyboardInterrupt:
-        print "Caught KeyboardInterrupt, terminating workers"
-        pool.terminate()
-        pool.join()
-        sys.exit(-1)
+    # try:
+    #     while(True):
+    #         print "Watchdog... every 60 seconds (Ctrl-C to interrupt)"
+    #         time.sleep(60)
+    # 
+    # except KeyboardInterrupt:
+    #     print "Caught KeyboardInterrupt, terminating workers"
+    #     pool.terminate()
+    #     pool.join()
+    #     sys.exit(-1)
     pool.close()
     pool.join()

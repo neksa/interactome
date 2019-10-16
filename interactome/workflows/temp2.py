@@ -87,6 +87,7 @@ def site_analysis(site):
 
 def main():
     root = "/panfs/pan1.be-md.ncbi.nlm.nih.gov/interactomes/pipeline/Interactome/Workflow"
+    # root = "/net/pan1/interactomes/pipeline/Interactome/Workflow"
 
     pdb_path = root + "/Interfaces"
     struct_path = root + "/Structures"
